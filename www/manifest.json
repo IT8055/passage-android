@@ -1,0 +1,34 @@
+{
+  "name": "Passage — Your gut health, on record",
+  "short_name": "Passage",
+  "description": "A private bowel-health record for people with IBD, Crohn's and IBS. Track the Bristol Stool Scale, symptoms, pain and urgency, and share a clear summary with your doctor. All data stays on your device.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F4F8F7",
+  "theme_color": "#085041",
+  "orientation": "portrait",
+  "categories": ["health", "medical", "lifestyle"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Log Entry",
+      "short_name": "Log",
+      "description": "Quickly log a new bowel movement",
+      "url": "./index.html#log",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

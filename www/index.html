@@ -1,0 +1,2243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Passage">
+<meta name="theme-color" content="#085041">
+<meta name="description" content="Personal bowel health diary for IBD, Crohn's and IBS sufferers">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23085041'/><text y='78' x='50' text-anchor='middle' font-size='68' font-family='Georgia,serif' font-weight='bold' fill='white'>P</text></svg>">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Passage — Your gut health, on record</title>
+<link href="fonts/fonts.css" rel="stylesheet">
+<script src="vendor/chart.umd.min.js"></script>
+<style>
+  :root {
+    --mint:      #1D9E75;   /* primary */
+    --teal-deep: #085041;   /* deep teal — headers, strong accents */
+    --mint-lt:   #E1F5EE;   /* surface */
+    --mint-mid:  #9FE1CB;   /* accent */
+    --amber:     #C77E29;
+    --amber-lt:  #fbf3e8;
+    --rose:      #C0564E;
+    --rose-lt:   #f8ecea;
+    --sky:       #3E7E96;
+    --sky-lt:    #e8f1f4;
+    --sand:      #F4F8F7;
+    --dark:      #2C2C2A;
+    --mid:       #4A5A55;
+    --muted:     #819590;
+    --white:     #ffffff;
+    --shadow:    0 4px 20px rgba(8,80,65,0.10);
+    --shadow-lg: 0 8px 40px rgba(8,80,65,0.16);
+    --radius:    16px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    font-family: 'Nunito', sans-serif;
+    background: var(--sand);
+    color: var(--dark);
+    overflow: hidden;
+  }
+
+  /* ── APP SHELL ── */
+  #app {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    max-width: 480px;
+    margin: 0 auto;
+    background: var(--white);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── HEADER ── */
+  .app-header {
+    background: linear-gradient(135deg, var(--teal-deep) 0%, var(--mint) 100%);
+    color: white;
+    padding: 16px 20px 14px;
+    padding-top: max(16px, env(safe-area-inset-top));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .app-header h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .app-header h1 span { opacity: 0.75; font-weight: 400; font-size: 13px; display: block; letter-spacing: 0; font-family: 'Nunito', sans-serif; }
+  .header-help-btn {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.22);
+    border: 2px solid rgba(255,255,255,0.45);
+    color: white;
+    font-family: 'Fraunces', serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s;
+    line-height: 1;
+  }
+  .header-help-btn:active { background: rgba(255,255,255,0.38); }
+  .header-date {
+    font-size: 11px;
+    opacity: 0.8;
+    text-align: right;
+    line-height: 1.4;
+  }
+
+  /* ── SCREENS ── */
+  .screen {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: none;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+    -webkit-overflow-scrolling: touch;
+  }
+  .screen.active { display: block; }
+
+  /* ── NAV ── */
+  .bottom-nav {
+    display: flex;
+    background: white;
+    border-top: 1px solid #e8f0ec;
+    padding-bottom: env(safe-area-inset-bottom);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
+  }
+  .nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 10px 4px 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 10px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    color: var(--muted);
+    transition: color 0.2s;
+  }
+  .nav-btn .icon { font-size: 22px; transition: transform 0.2s; }
+  .nav-btn.active { color: var(--mint); }
+  .nav-btn.active .icon { transform: scale(1.15); }
+  .nav-btn.log-btn { color: white; }
+  .nav-btn.log-btn .icon-wrap {
+    background: linear-gradient(135deg, var(--mint), #0c6b54);
+    width: 54px; height: 54px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    margin-top: -20px;
+    box-shadow: 0 4px 15px rgba(29,158,117,0.45);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .nav-btn.log-btn.active .icon-wrap,
+  .nav-btn.log-btn:active .icon-wrap {
+    transform: scale(1.08);
+    box-shadow: 0 6px 20px rgba(29,158,117,0.55);
+  }
+  .nav-btn.log-btn span:last-child { color: var(--mint); margin-top: 2px; }
+
+  /* ── CARDS ── */
+  .card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: var(--shadow);
+    margin: 12px 16px;
+  }
+  .card-title {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ── DASHBOARD ── */
+  .dash-hero {
+    background: linear-gradient(135deg, #E1F5EE 0%, #d4efe3 100%);
+    margin: 16px;
+    border-radius: var(--radius);
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .stat-tile {
+    background: white;
+    border-radius: var(--radius-sm);
+    padding: 14px 12px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .stat-tile .val {
+    font-family: 'Fraunces', serif;
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--mint);
+    line-height: 1;
+  }
+  .stat-tile .lbl {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .stat-tile.amber .val { color: var(--amber); }
+  .stat-tile.rose .val { color: var(--rose); }
+  .stat-tile.sky .val { color: var(--sky); }
+
+  .recent-list { padding: 0 16px; }
+  .entry-chip {
+    background: white;
+    border-radius: var(--radius-sm);
+    padding: 13px 16px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .entry-chip:active { transform: scale(0.98); }
+  .entry-chip::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    border-radius: 4px 0 0 4px;
+    background: var(--mint);
+  }
+  .entry-chip.type-1::before, .entry-chip.type-2::before { background: var(--rose); }
+  .entry-chip.type-3::before, .entry-chip.type-4::before { background: var(--mint); }
+  .entry-chip.type-5::before, .entry-chip.type-6::before { background: var(--amber); }
+  .entry-chip.type-7::before { background: #c0392b; }
+
+  .entry-type-badge {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    background: var(--mint-lt);
+    color: var(--teal-deep);
+    font-weight: 800;
+    font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .entry-info { flex: 1; min-width: 0; }
+  .entry-info .title {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .entry-info .sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .entry-time {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 600;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .entry-chip .del-btn {
+    background: var(--rose-lt);
+    border: none;
+    color: var(--rose);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 16px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  /* ── LOG FORM ── */
+  .log-screen { background: var(--sand); }
+  .form-section {
+    background: white;
+    margin: 10px 16px;
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  }
+  .form-section-title {
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  /* Bristol Scale picker */
+  .bristol-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .bristol-opt {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    border: 2px solid transparent;
+    background: var(--sand);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .bristol-opt:active { transform: scale(0.98); }
+  .bristol-opt.selected {
+    border-color: var(--mint);
+    background: var(--mint-lt);
+  }
+  .bristol-opt.selected-1, .bristol-opt.selected-2 {
+    border-color: var(--rose);
+    background: var(--rose-lt);
+  }
+  .bristol-opt.selected-5, .bristol-opt.selected-6 {
+    border-color: var(--amber);
+    background: var(--amber-lt);
+  }
+  .bristol-opt.selected-7 {
+    border-color: #c0392b;
+    background: #fdf0ef;
+  }
+  .bristol-num {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--mint);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .t1 .bristol-num, .t2 .bristol-num { background: var(--rose); }
+  .t5 .bristol-num, .t6 .bristol-num { background: var(--amber); }
+  .t7 .bristol-num { background: #c0392b; }
+  .bristol-icon { font-size: 22px; flex-shrink: 0; }
+  .bristol-desc { flex: 1; min-width: 0; }
+  .bristol-desc strong { font-size: 13px; font-weight: 700; display: block; }
+  .bristol-desc span { font-size: 11px; color: var(--muted); }
+  .bristol-tag {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 20px;
+    background: var(--mint-mid);
+    color: var(--mint);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .tag-hard { background: #ffd6d4; color: var(--rose); }
+  .tag-ideal { background: var(--mint-mid); color: var(--mint); }
+  .tag-loose { background: #fde9c5; color: #b07d1a; }
+  .tag-liquid { background: #ffd6d4; color: #c0392b; }
+
+  /* Pill selectors */
+  .pill-group { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill {
+    padding: 8px 14px;
+    border-radius: 50px;
+    border: 2px solid #e0ece6;
+    background: var(--sand);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--mid);
+    cursor: pointer;
+    transition: all 0.18s;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .pill:active { transform: scale(0.95); }
+  .pill.selected {
+    background: var(--mint);
+    border-color: var(--mint);
+    color: white;
+  }
+  .pill.pill-amber.selected { background: var(--amber); border-color: var(--amber); }
+  .pill.pill-rose.selected  { background: var(--rose);  border-color: var(--rose); }
+  .pill.pill-sky.selected   { background: var(--sky);   border-color: var(--sky); }
+
+  /* Slider */
+  .slider-row { display: flex; align-items: center; gap: 12px; }
+  .slider-row input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(to right, var(--mint) var(--pct, 50%), #dde9e4 var(--pct, 50%));
+    outline: none;
+  }
+  .slider-row input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--mint);
+    box-shadow: 0 2px 8px rgba(29,158,117,0.4);
+    cursor: pointer;
+  }
+  .slider-val {
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--mint);
+    min-width: 28px;
+    text-align: center;
+  }
+  .slider-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-top: 4px; font-weight: 600; }
+
+  /* Textarea */
+  textarea {
+    width: 100%;
+    border: 2px solid #e0ece6;
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    color: var(--dark);
+    background: var(--sand);
+    resize: none;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  textarea:focus { border-color: var(--mint); }
+
+  /* Photo area */
+  .photo-area {
+    border: 2px dashed var(--mint-mid);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    text-align: center;
+    background: var(--mint-lt);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .photo-area:active { transform: scale(0.98); }
+  .photo-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .photo-preview {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .photo-thumb {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+  }
+  .photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .photo-thumb .rm { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+  /* Submit btn */
+  .submit-btn {
+    display: block;
+    width: calc(100% - 32px);
+    margin: 16px;
+    padding: 18px;
+    background: linear-gradient(135deg, var(--mint), #0c6b54);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'Nunito', sans-serif;
+    font-size: 17px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(29,158,117,0.4);
+    transition: transform 0.15s, box-shadow 0.15s;
+    letter-spacing: 0.3px;
+  }
+  .submit-btn:active { transform: scale(0.97); box-shadow: 0 2px 10px rgba(29,158,117,0.3); }
+
+  /* ── STATS SCREEN ── */
+  .chart-wrap { position: relative; height: 200px; margin-top: 8px; }
+
+  /* ── HISTORY SCREEN ── */
+  .filter-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 7px;
+    padding: 12px 16px 4px;
+  }
+  .filter-chip {
+    padding: 8px 4px;
+    border-radius: 50px;
+    border: 2px solid #e0ece6;
+    background: white;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--mid);
+    cursor: pointer;
+    white-space: nowrap;
+    text-align: center;
+    transition: all 0.18s;
+  }
+  .filter-chip:active { transform: scale(0.95); }
+  .filter-chip.active { background: var(--mint); border-color: var(--mint); color: white; }
+  /* "All" chip spans full width on its own row */
+  .filter-chip[data-filter="all"] { grid-column: 1 / -1; }
+
+  /* ── FILTER TOOLTIP ── */
+  .filter-tooltip {
+    position: fixed;
+    background: var(--dark);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.45;
+    padding: 9px 13px;
+    border-radius: 10px;
+    pointer-events: none;
+    z-index: 200;
+    max-width: 200px;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.18s, transform 0.18s;
+  }
+  .filter-tooltip.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .filter-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: var(--dark);
+  }
+  [data-dark="true"] .filter-tooltip { background: #e8f2ed; color: var(--dark); box-shadow: 0 4px 16px rgba(0,0,0,0.5); }
+  [data-dark="true"] .filter-tooltip::after { border-top-color: #e8f2ed; }
+
+  /* ── DARK MODE ── */
+  [data-dark="true"] {
+    --sand:    #151e19;
+    --white:   #1e2d26;
+    --dark:    #e8f2ed;
+    --mid:     #a8c4b4;
+    --muted:   #5a7a6a;
+    --mint-lt: #0d241d;
+    --mint-mid:#134034;
+    --amber-lt:#2a2010;
+    --rose-lt: #2d1715;
+    --sky-lt:  #0f2233;
+    --shadow:  0 4px 20px rgba(0,0,0,0.35);
+    --shadow-lg: 0 8px 40px rgba(0,0,0,0.45);
+  }
+  [data-dark="true"] body { background: var(--sand); }
+  [data-dark="true"] #app { background: var(--white); }
+  [data-dark="true"] .app-header { background: linear-gradient(135deg, #06382e 0%, #0c6b54 100%); }
+  [data-dark="true"] .screen-header { background: linear-gradient(135deg, #06382e, #0c6b54); }
+  [data-dark="true"] .help-hero { background: linear-gradient(135deg, #0c6b54, #0a4338); }
+  [data-dark="true"] .bottom-nav { background: #1e2d26; border-top-color: #2a3e32; }
+  [data-dark="true"] .card { background: #0e2a23; }
+  [data-dark="true"] .form-section { background: #0e2a23; box-shadow: none; }
+  [data-dark="true"] .entry-chip { background: #0e2a23; }
+  [data-dark="true"] .stat-tile { background: #0e2a23; }
+  [data-dark="true"] .export-btn { background: #0e2a23; }
+  [data-dark="true"] .help-section { background: #0e2a23; }
+  [data-dark="true"] .help-section-body { border-top-color: #2a3e32; }
+  [data-dark="true"] .help-section-header { background: #0d241d; }
+  [data-dark="true"] .help-section-header.open { background: #0d241d; }
+  [data-dark="true"] .modal-sheet { background: #1e2d26; }
+  [data-dark="true"] .modal-header { border-bottom-color: #2a3e32; }
+  [data-dark="true"] .modal-close { background: #2a3e32; }
+  [data-dark="true"] .detail-row { border-bottom-color: #2a3e32; }
+  [data-dark="true"] .filter-chip { background: #0e2a23; border-color: #2a3e32; }
+  [data-dark="true"] .install-banner { background: linear-gradient(135deg, #0d241d, #103027); }
+  [data-dark="true"] .contact-card { background: linear-gradient(135deg, #0f2233, #132b3f); }
+  [data-dark="true"] .disclaimer-card { background: #2d1715; }
+  [data-dark="true"] .disclaimer-card p { color: #e8a09d; }
+  [data-dark="true"] .bristol-opt { background: #0d241d; }
+  [data-dark="true"] .colour-swatch { background: #0d241d; }
+  [data-dark="true"] .pill { background: #0d241d; border-color: #2a3e32; }
+  [data-dark="true"] textarea { background: #0d241d; border-color: #2a3e32; color: var(--dark); }
+  [data-dark="true"] .photo-area { background: #0d241d; border-color: #2a3e32; }
+  [data-dark="true"] .slider-row input[type=range] { background: linear-gradient(to right, var(--mint) var(--pct,50%), #2a3e32 var(--pct,50%)); }
+  [data-dark="true"] input[type=datetime-local] { background: #0d241d; border-color: #2a3e32; color: var(--dark); }
+  [data-dark="true"] .log-screen { background: #151e19; }
+  [data-dark="true"] .dash-hero { background: linear-gradient(135deg, #0d241d, #103027); }
+  [data-dark="true"] .help-colour-row { border-bottom-color: #2a3e32; }
+  [data-dark="true"] .help-bristol-row { border-bottom-color: #2a3e32; }
+  [data-dark="true"] .help-faq-a { color: var(--mid); }
+  [data-dark="true"] .insight-chip { background: #0d241d; }
+  [data-dark="true"] .insight-chip.amber { background: #2a2010; }
+  [data-dark="true"] .insight-chip.rose  { background: #2d1715; }
+
+  /* Dark mode toggle switch */
+  .dm-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--white);
+    margin: 10px 16px;
+    padding: 16px 18px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .dm-toggle-row .dm-label { display: flex; align-items: center; gap: 12px; }
+  .dm-toggle-row .dm-ico { font-size: 26px; width: 48px; height: 48px; background: var(--mint-lt); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; }
+  .dm-toggle-row .dm-txt strong { display: block; font-size: 15px; font-weight: 800; color: var(--dark); }
+  .dm-toggle-row .dm-txt span { font-size: 12px; color: var(--muted); }
+  .toggle-switch {
+    position: relative;
+    width: 52px; height: 28px;
+    flex-shrink: 0;
+  }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-track {
+    position: absolute;
+    inset: 0;
+    background: #d0ddd8;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: background 0.25s;
+  }
+  .toggle-track::after {
+    content: '';
+    position: absolute;
+    left: 3px; top: 3px;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    transition: transform 0.25s;
+  }
+  .toggle-switch input:checked + .toggle-track { background: var(--mint); }
+  .toggle-switch input:checked + .toggle-track::after { transform: translateX(24px); }
+
+  /* ── DETAIL MODAL ── */
+  .modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(30,45,38,0.5);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: flex-end;
+    z-index: 50;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-sheet {
+    background: white;
+    width: 100%;
+    border-radius: 24px 24px 0 0;
+    padding: 0 0 calc(24px + env(safe-area-inset-bottom));
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+  .modal-handle {
+    width: 40px; height: 4px;
+    background: #d0ddd8;
+    border-radius: 2px;
+    margin: 12px auto 0;
+  }
+  .modal-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #eef4f1;
+  }
+  .modal-header h2 { font-family: 'Fraunces', serif; font-size: 18px; }
+  .modal-close {
+    background: var(--sand);
+    border: none;
+    border-radius: 50%;
+    width: 32px; height: 32px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--mid);
+  }
+  .modal-body { padding: 16px 20px; }
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f5f2;
+    font-size: 14px;
+  }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-row .lbl { color: var(--muted); font-weight: 600; }
+  .detail-row .val { font-weight: 700; color: var(--dark); text-align: right; max-width: 60%; }
+  .detail-photos { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 12px; }
+  .detail-photos img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; }
+
+  /* ── SETTINGS / EXPORT ── */
+  .export-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: white;
+    border: none;
+    border-radius: var(--radius);
+    padding: 18px;
+    margin: 10px 16px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    width: calc(100% - 32px);
+    font-family: 'Nunito', sans-serif;
+    transition: transform 0.15s;
+  }
+  .export-btn:active { transform: scale(0.97); }
+  .export-btn .ico { font-size: 28px; width: 48px; height: 48px; background: var(--mint-lt); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .export-btn .txt strong { display: block; font-size: 15px; font-weight: 800; color: var(--dark); }
+  .export-btn .txt span { font-size: 12px; color: var(--muted); }
+
+  .install-banner {
+    margin: 10px 16px;
+    background: linear-gradient(135deg, #E1F5EE, #d4f0e5);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .install-banner .ico { font-size: 28px; }
+  .install-banner strong { display: block; font-size: 14px; font-weight: 800; color: var(--dark); margin-bottom: 4px; }
+  .install-banner p { font-size: 12px; color: var(--mid); line-height: 1.5; }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 50px 30px;
+    color: var(--muted);
+  }
+  .empty-state .icon { font-size: 56px; margin-bottom: 16px; }
+  .empty-state h3 { font-family: 'Fraunces', serif; font-size: 20px; color: var(--mid); margin-bottom: 8px; }
+  .empty-state p { font-size: 14px; line-height: 1.6; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: absolute;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--dark);
+    color: white;
+    padding: 12px 22px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 700;
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 100;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* Screen header strips */
+  .screen-header {
+    background: linear-gradient(135deg, var(--mint), #0c6b54);
+    color: white;
+    padding: 20px 20px 28px;
+    margin-bottom: -16px;
+  }
+  .screen-header h2 { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; }
+  .screen-header p { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+
+  /* Log form top padding */
+  .log-top-pad { height: 16px; }
+
+  /* Urgency slider colors */
+  #urgencySlider { --color: var(--amber); }
+  #painSlider { --color: var(--rose); }
+  input[type=range]#urgencySlider::-webkit-slider-thumb { background: var(--amber); box-shadow: 0 2px 8px rgba(245,166,35,0.4); }
+  input[type=range]#painSlider::-webkit-slider-thumb { background: var(--rose); box-shadow: 0 2px 8px rgba(232,112,106,0.4); }
+
+  .label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .label-row label { font-weight: 700; font-size: 14px; color: var(--dark); }
+
+  /* Colour swatches */
+  .colour-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .colour-swatch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    padding: 8px 4px;
+    border-radius: var(--radius-sm);
+    border: 2px solid transparent;
+    transition: all 0.18s;
+    background: var(--sand);
+  }
+  .colour-swatch.selected { border-color: var(--mint); background: var(--mint-lt); }
+  .colour-swatch .dot {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+  .colour-swatch span { font-size: 10px; font-weight: 700; color: var(--mid); text-align: center; line-height: 1.2; }
+
+  /* ── HELP SCREEN ── */
+  .help-hero {
+    background: linear-gradient(135deg, var(--mint), #0c6b54);
+    color: white;
+    padding: 24px 20px 40px;
+    margin-bottom: -20px;
+    text-align: center;
+  }
+  .help-hero .hero-icon { font-size: 52px; margin-bottom: 10px; }
+  .help-hero h2 { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+  .help-hero p { font-size: 13px; opacity: 0.85; line-height: 1.6; max-width: 300px; margin: 0 auto; }
+
+  .help-section {
+    background: white;
+    margin: 10px 16px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .help-section-header {
+    background: var(--mint-lt);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid transparent;
+    transition: background 0.2s;
+  }
+  .help-section-header:active { background: var(--mint-mid); }
+  .help-section-header .h-icon { font-size: 22px; }
+  .help-section-header h3 { font-size: 15px; font-weight: 800; color: var(--dark); flex: 1; }
+  .help-section-header .chevron {
+    font-size: 12px;
+    color: var(--muted);
+    transition: transform 0.25s;
+    font-style: normal;
+  }
+  .help-section-header.open .chevron { transform: rotate(180deg); }
+  .help-section-body {
+    display: none;
+    padding: 16px 18px;
+    border-top: 1px solid #eef4f1;
+  }
+  .help-section-body.open { display: block; }
+
+  .help-step {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 14px;
+    align-items: flex-start;
+  }
+  .help-step:last-child { margin-bottom: 0; }
+  .help-step .step-num {
+    width: 26px; height: 26px;
+    background: var(--mint);
+    color: white;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    font-weight: 800;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .help-step p { font-size: 13px; color: var(--mid); line-height: 1.6; }
+  .help-step p strong { color: var(--dark); }
+
+  .help-bristol-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f5f2;
+    font-size: 13px;
+  }
+  .help-bristol-row:last-child { border-bottom: none; }
+  .help-bristol-row .hb-num {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 12px; color: white;
+    flex-shrink: 0;
+  }
+  .hb-1,.hb-2 { background: var(--rose); }
+  .hb-3,.hb-4 { background: var(--mint); }
+  .hb-5,.hb-6 { background: var(--amber); }
+  .hb-7 { background: #c0392b; }
+  .help-bristol-row .hb-icon { font-size: 18px; flex-shrink: 0; }
+  .help-bristol-row .hb-text strong { display: block; font-weight: 700; color: var(--dark); }
+  .help-bristol-row .hb-text span { color: var(--muted); font-size: 12px; }
+  .hb-tag {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .hb-tag.hard  { background: #ffd6d4; color: var(--rose); }
+  .hb-tag.ideal { background: var(--mint-mid); color: var(--mint); }
+  .hb-tag.loose { background: #fde9c5; color: #b07d1a; }
+  .hb-tag.liquid{ background: #ffd6d4; color: #c0392b; }
+
+  .help-colour-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid #f0f5f2;
+    font-size: 13px;
+  }
+  .help-colour-row:last-child { border-bottom: none; }
+  .help-colour-row .hdot {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  .help-colour-row .hc-label { font-weight: 700; color: var(--dark); min-width: 90px; }
+  .help-colour-row .hc-desc { color: var(--muted); font-size: 12px; }
+
+  .help-faq-q {
+    font-weight: 800;
+    font-size: 14px;
+    color: var(--dark);
+    margin-bottom: 5px;
+    display: flex;
+    gap: 8px;
+  }
+  .help-faq-q::before { content: 'Q'; background: var(--mint); color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; margin-top: 1px; }
+  .help-faq-a {
+    font-size: 13px;
+    color: var(--mid);
+    line-height: 1.65;
+    padding-left: 30px;
+    margin-bottom: 16px;
+  }
+  .help-faq-a:last-child { margin-bottom: 0; }
+
+  .contact-card {
+    margin: 10px 16px;
+    background: linear-gradient(135deg, #eaf4fb, #d5ecf7);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+    box-shadow: var(--shadow);
+  }
+  .contact-card .c-icon { font-size: 36px; margin-bottom: 10px; }
+  .contact-card h3 { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 700; color: var(--dark); margin-bottom: 6px; }
+  .contact-card p { font-size: 13px; color: var(--mid); line-height: 1.6; margin-bottom: 14px; }
+  .contact-card a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--sky);
+    color: white;
+    text-decoration: none;
+    padding: 12px 22px;
+    border-radius: 50px;
+    font-weight: 800;
+    font-size: 14px;
+    box-shadow: 0 4px 14px rgba(91,163,201,0.4);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .contact-card a:active { transform: scale(0.97); }
+
+  .disclaimer-card {
+    margin: 10px 16px 4px;
+    background: var(--rose-lt);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .disclaimer-card .di { font-size: 22px; flex-shrink: 0; }
+  .disclaimer-card p { font-size: 12px; color: #7a3d3a; line-height: 1.6; }
+  .disclaimer-card strong { color: var(--rose); }
+
+  /* Insights chips */
+  .insight-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .insight-chip {
+    background: var(--mint-lt);
+    color: var(--mint);
+    border-radius: 50px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .insight-chip.amber { background: var(--amber-lt); color: #b07d1a; }
+  .insight-chip.rose  { background: var(--rose-lt);  color: var(--rose); }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HEADER -->
+  <div class="app-header">
+    <div>
+      <h1>Passage <span>Your gut health, on record</span></h1>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="header-date" id="headerDate"></div>
+      <button class="header-help-btn" onclick="toggleHelpScreen()" title="Help">?</button>
+    </div>
+  </div>
+
+  <!-- SCREEN: DASHBOARD -->
+  <div class="screen active" id="screen-home">
+    <div class="dash-hero">
+      <div class="stat-tile"><div class="val" id="stat-today">0</div><div class="lbl">Today</div></div>
+      <div class="stat-tile sky"><div class="val" id="stat-week">0</div><div class="lbl">This Week</div></div>
+      <div class="stat-tile amber"><div class="val" id="stat-avg-type">–</div><div class="lbl">Avg Type</div></div>
+      <div class="stat-tile rose"><div class="val" id="stat-avg-pain">–</div><div class="lbl">Avg Pain (7d)</div></div>
+    </div>
+
+    <div class="recent-list" id="recentList">
+      <p class="card-title" style="padding:0 4px 8px;font-size:14px;">Recent Entries</p>
+    </div>
+
+    <div id="emptyHome" class="empty-state" style="display:none;">
+      <div class="icon">📋</div>
+      <h3>No entries yet</h3>
+      <p>Tap the <strong>+</strong> button below to record your first entry. Everything stays private on your device.</p>
+    </div>
+  </div>
+
+  <!-- SCREEN: LOG -->
+  <div class="screen log-screen" id="screen-log">
+    <div class="log-top-pad"></div>
+
+    <!-- Bristol Stool Scale -->
+    <div class="form-section">
+      <div class="form-section-title">Bristol Stool Scale — Type *</div>
+      <div class="bristol-grid" id="bristolGrid">
+        <div class="bristol-opt t1" data-val="1">
+          <div class="bristol-num">1</div>
+          <div class="bristol-desc"><strong>Separate Hard Lumps</strong><span>Like nuts, very hard to pass</span></div>
+          <div class="bristol-tag tag-hard">Constipated</div>
+        </div>
+        <div class="bristol-opt t2" data-val="2">
+          <div class="bristol-num">2</div>
+          <div class="bristol-desc"><strong>Lumpy & Sausage-like</strong><span>Hard, can be painful</span></div>
+          <div class="bristol-tag tag-hard">Hard</div>
+        </div>
+        <div class="bristol-opt t3" data-val="3">
+          <div class="bristol-num">3</div>
+          <div class="bristol-desc"><strong>Sausage with Cracks</strong><span>Normal, slightly dry</span></div>
+          <div class="bristol-tag tag-ideal">Normal</div>
+        </div>
+        <div class="bristol-opt t4" data-val="4">
+          <div class="bristol-num">4</div>
+          <div class="bristol-desc"><strong>Smooth & Soft Sausage</strong><span>Ideal — easy to pass</span></div>
+          <div class="bristol-tag tag-ideal">Ideal ✓</div>
+        </div>
+        <div class="bristol-opt t5" data-val="5">
+          <div class="bristol-num">5</div>
+          <div class="bristol-desc"><strong>Soft Blobs, Clear Edges</strong><span>Lacking fibre</span></div>
+          <div class="bristol-tag tag-loose">Soft</div>
+        </div>
+        <div class="bristol-opt t6" data-val="6">
+          <div class="bristol-num">6</div>
+          <div class="bristol-desc"><strong>Fluffy, Mushy Pieces</strong><span>Mild diarrhoea</span></div>
+          <div class="bristol-tag tag-loose">Loose</div>
+        </div>
+        <div class="bristol-opt t7" data-val="7">
+          <div class="bristol-num">7</div>
+          <div class="bristol-desc"><strong>Entirely Liquid</strong><span>Severe diarrhoea — no solids</span></div>
+          <div class="bristol-tag tag-liquid">Liquid</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colour -->
+    <div class="form-section">
+      <div class="form-section-title">Colour</div>
+      <div class="colour-grid" id="colourGrid">
+        <div class="colour-swatch" data-val="Brown"><div class="dot" style="background:#8B5E3C;"></div><span>Brown</span></div>
+        <div class="colour-swatch" data-val="Dark Brown"><div class="dot" style="background:#4a2e1a;"></div><span>Dark Brown</span></div>
+        <div class="colour-swatch" data-val="Light Brown"><div class="dot" style="background:#c4915a;"></div><span>Light Brown</span></div>
+        <div class="colour-swatch" data-val="Yellow"><div class="dot" style="background:#e6c84a;"></div><span>Yellow</span></div>
+        <div class="colour-swatch" data-val="Green"><div class="dot" style="background:#5a9e4a;"></div><span>Green</span></div>
+        <div class="colour-swatch" data-val="Black"><div class="dot" style="background:#1a1a1a;"></div><span>Black</span></div>
+        <div class="colour-swatch" data-val="Red/Blood"><div class="dot" style="background:#c0392b;"></div><span>Red / Blood</span></div>
+        <div class="colour-swatch" data-val="Pale/Grey"><div class="dot" style="background:#c8c0b8;"></div><span>Pale / Grey</span></div>
+      </div>
+    </div>
+
+    <!-- Urgency -->
+    <div class="form-section">
+      <div class="label-row"><label>Urgency</label><span id="urgencyLabel" style="font-weight:800;color:var(--amber);font-size:15px;">5 – Moderate</span></div>
+      <div class="slider-row">
+        <span style="font-size:14px;">😌</span>
+        <input type="range" id="urgencySlider" min="1" max="10" value="5" oninput="updateSlider(this,'urgency')">
+        <span style="font-size:14px;">🚨</span>
+      </div>
+      <div class="slider-labels"><span>No urgency</span><span>Couldn't wait</span></div>
+    </div>
+
+    <!-- Pain -->
+    <div class="form-section">
+      <div class="label-row"><label>Pain / Discomfort</label><span id="painLabel" style="font-weight:800;color:var(--rose);font-size:15px;">0 – None</span></div>
+      <div class="slider-row">
+        <span style="font-size:14px;">🙂</span>
+        <input type="range" id="painSlider" min="0" max="10" value="0" oninput="updateSlider(this,'pain')">
+        <span style="font-size:14px;">😖</span>
+      </div>
+      <div class="slider-labels"><span>No pain</span><span>Severe pain</span></div>
+    </div>
+
+    <!-- Additional symptoms -->
+    <div class="form-section">
+      <div class="form-section-title">Additional Symptoms</div>
+      <div class="pill-group" id="symptomGroup">
+        <div class="pill" data-val="Blood">🩸 Blood</div>
+        <div class="pill" data-val="Mucus">💧 Mucus</div>
+        <div class="pill" data-val="Gas/Flatulence">💨 Gas</div>
+        <div class="pill" data-val="Bloating">🫃 Bloating</div>
+        <div class="pill" data-val="Cramping">⚡ Cramping</div>
+        <div class="pill" data-val="Incomplete Emptying">🔄 Incomplete</div>
+        <div class="pill" data-val="Straining">💪 Straining</div>
+        <div class="pill" data-val="Nausea">🤢 Nausea</div>
+      </div>
+    </div>
+
+    <!-- Ease of passing -->
+    <div class="form-section">
+      <div class="form-section-title">Ease of Passing</div>
+      <div class="pill-group" id="easeGroup">
+        <div class="pill" data-val="Very Easy">😊 Very Easy</div>
+        <div class="pill" data-val="Easy">🙂 Easy</div>
+        <div class="pill" data-val="Normal">😐 Normal</div>
+        <div class="pill" data-val="Difficult">😣 Difficult</div>
+        <div class="pill" data-val="Very Difficult">😖 Very Difficult</div>
+      </div>
+    </div>
+
+    <!-- Date/Time -->
+    <div class="form-section">
+      <div class="form-section-title">Date & Time</div>
+      <div class="label-row" style="margin-bottom:0;">
+        <label style="font-size:13px;font-weight:700;color:var(--mid);">Recorded at</label>
+      </div>
+      <input type="datetime-local" id="entryDatetime"
+        style="width:100%;border:2px solid #e0ece6;border-radius:var(--radius-sm);padding:12px;font-family:'Nunito',sans-serif;font-size:14px;color:var(--dark);background:var(--sand);outline:none;margin-top:8px;">
+    </div>
+
+    <!-- Notes -->
+    <div class="form-section">
+      <div class="form-section-title">Notes (optional)</div>
+      <textarea id="entryNotes" rows="3" placeholder="Any other observations — diet, stress, medication…"></textarea>
+    </div>
+
+    <!-- Photos -->
+    <div class="form-section">
+      <div class="form-section-title">Photos (optional, stored on device only)</div>
+      <div class="photo-area" id="photoArea">
+        <input type="file" accept="image/*" multiple capture="environment" id="photoInput" onchange="handlePhotos(event)">
+        <div style="font-size:32px;margin-bottom:8px;">📷</div>
+        <div style="font-weight:700;color:var(--mint);font-size:14px;">Tap to add photos</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;">Private — never uploaded</div>
+      </div>
+      <div class="photo-preview" id="photoPreview"></div>
+    </div>
+
+    <button class="submit-btn" onclick="saveEntry()">✅ Save Entry</button>
+    <div style="height:16px;"></div>
+  </div>
+
+  <!-- SCREEN: STATS -->
+  <div class="screen" id="screen-stats">
+    <div class="screen-header">
+      <h2>📊 Stats & Trends</h2>
+      <p>Insights from your logged entries</p>
+    </div>
+
+    <div class="card" style="margin-top:28px;" id="insightCard">
+      <div class="card-title">💡 Quick Insights</div>
+      <div class="insight-row" id="insightRow"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📅 Daily Movements (14 days)</div>
+      <div class="chart-wrap"><canvas id="chartDaily"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🌊 Bristol Type Distribution</div>
+      <div class="chart-wrap"><canvas id="chartType"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⚡ Pain & Urgency Trends</div>
+      <div class="chart-wrap"><canvas id="chartPain"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🎨 Colour Frequency</div>
+      <div class="chart-wrap"><canvas id="chartColour"></canvas></div>
+    </div>
+
+    <div style="height:20px;"></div>
+  </div>
+
+  <!-- SCREEN: HISTORY -->
+  <div class="screen" id="screen-history">
+    <div class="screen-header">
+      <h2>📋 Full History</h2>
+      <p>All your logged entries</p>
+    </div>
+    <div style="height:16px;"></div>
+    <div class="filter-bar" id="filterBar">
+      <div class="filter-chip active" data-filter="all">All Types</div>
+      <div class="filter-chip" data-filter="1" data-tip="Type 1 — Separate Hard Lumps&#10;Like small stones, very hard to pass. Indicates constipation.">Type 1</div>
+      <div class="filter-chip" data-filter="2" data-tip="Type 2 — Lumpy Sausage&#10;Sausage-shaped but lumpy and hard. Still constipated.">Type 2</div>
+      <div class="filter-chip" data-filter="3" data-tip="Type 3 — Cracked Sausage&#10;Like a sausage with surface cracks. Normal, slightly dry.">Type 3</div>
+      <div class="filter-chip" data-filter="4" data-tip="Type 4 — Smooth Sausage&#10;Smooth and soft. The ideal type — easy to pass.">Type 4</div>
+      <div class="filter-chip" data-filter="5" data-tip="Type 5 — Soft Blobs&#10;Soft blobs with clear edges. Lacking fibre.">Type 5</div>
+      <div class="filter-chip" data-filter="6" data-tip="Type 6 — Fluffy &amp; Mushy&#10;Ragged, mushy pieces. Mild diarrhoea.">Type 6</div>
+      <div class="filter-chip" data-filter="7" data-tip="Type 7 — Entirely Liquid&#10;No solid pieces at all. Severe diarrhoea.">Type 7</div>
+    </div>
+    <div class="filter-tooltip" id="filterTooltip"></div>
+    <div id="historyList" style="padding:0 16px;"></div>
+    <div id="emptyHistory" class="empty-state" style="display:none;">
+      <div class="icon">📋</div>
+      <h3>No entries found</h3>
+      <p>Try a different filter, or log your first entry.</p>
+    </div>
+  </div>
+
+  <!-- SCREEN: EXPORT / SETTINGS -->
+  <div class="screen" id="screen-settings">
+    <div class="screen-header">
+      <h2>⚙️ Export & Settings</h2>
+      <p>Share data with your healthcare team</p>
+    </div>
+    <div style="height:28px;"></div>
+
+    <!-- Dark mode toggle -->
+    <div class="dm-toggle-row">
+      <div class="dm-label">
+        <div class="dm-ico">🌙</div>
+        <div class="dm-txt"><strong>Dark Mode</strong><span>Easier on the eyes at night</span></div>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode(this.checked)">
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+
+
+    <button class="export-btn" onclick="exportCSV()">
+      <div class="ico">📊</div>
+      <div class="txt"><strong>Export as CSV</strong><span>For your doctor or dietitian</span></div>
+      <span style="margin-left:auto;font-size:20px;color:var(--muted);">→</span>
+    </button>
+
+    <button class="export-btn" onclick="exportJSON()">
+      <div class="ico" style="background:var(--sky-lt);">💾</div>
+      <div class="txt"><strong>Backup Data (JSON)</strong><span>Save a full backup of all entries</span></div>
+      <span style="margin-left:auto;font-size:20px;color:var(--muted);">→</span>
+    </button>
+
+    <button class="export-btn" onclick="document.getElementById('importFile').click()">
+      <div class="ico" style="background:var(--amber-lt);">📂</div>
+      <div class="txt"><strong>Restore Backup</strong><span>Import a previously saved JSON backup</span></div>
+      <span style="margin-left:auto;font-size:20px;color:var(--muted);">→</span>
+    </button>
+    <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importJSON(event)">
+
+    <button class="export-btn" onclick="clearAllData()" style="margin-top:4px;">
+      <div class="ico" style="background:var(--rose-lt);">🗑️</div>
+      <div class="txt"><strong>Clear All Data</strong><span>Permanently delete all entries</span></div>
+      <span style="margin-left:auto;font-size:20px;color:var(--muted);">→</span>
+    </button>
+
+    <div class="card" style="margin-top:8px;">
+      <div class="card-title" style="margin-bottom:10px;">ℹ️ About Passage</div>
+      <p style="font-size:13px;color:var(--muted);line-height:1.7;">Passage uses the clinically validated <strong>Bristol Stool Form Scale</strong> to help you track bowel health accurately. All data is stored locally on your device — nothing is ever transmitted externally. Export your CSV and share it directly with your gastroenterologist, GP or dietitian.</p>
+      <p style="font-size:12px;color:var(--muted);margin-top:10px;">⚕️ This app is a tracking tool only and does not provide medical advice. Always consult your healthcare provider about symptoms.</p>
+    </div>
+
+    <div style="height:20px;"></div>
+  </div>
+
+  <!-- SCREEN: HELP -->
+  <div class="screen" id="screen-help">
+
+    <div class="help-hero">
+      <div class="hero-icon">📋</div>
+      <h2>How to use Passage</h2>
+      <p>Everything you need to know about logging your gut health and sharing data with your doctor.</p>
+    </div>
+
+    <!-- Getting Started -->
+    <div class="help-section" style="margin-top:30px;">
+      <div class="help-section-header open" onclick="toggleHelp(this)">
+        <span class="h-icon">🚀</span>
+        <h3>Getting Started</h3>
+        <i class="chevron">▼</i>
+      </div>
+      <div class="help-section-body open">
+        <div class="help-step">
+          <div class="step-num">1</div>
+          <p>Tap the <strong>green ➕ button</strong> at the bottom centre of the screen to open the logging form.</p>
+        </div>
+        <div class="help-step">
+          <div class="step-num">2</div>
+          <p>Choose your <strong>Bristol Stool Type</strong> (1–7). This is the only required field — everything else is optional but helpful.</p>
+        </div>
+        <div class="help-step">
+          <div class="step-num">3</div>
+          <p>Fill in as many details as you like — colour, urgency, pain, symptoms, and notes. The more you log, the more useful your data is for your doctor.</p>
+        </div>
+        <div class="help-step">
+          <div class="step-num">4</div>
+          <p>Tap <strong>Save Entry</strong>. Your entry is stored privately on your phone — nothing is sent anywhere.</p>
+        </div>
+        <div class="help-step">
+          <div class="step-num">5</div>
+          <p>Before a doctor's appointment, go to <strong>Export &amp; Settings</strong> (⚙️) and tap <strong>Export as CSV</strong> to create a file you can share.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bristol Stool Scale -->
+    <div class="help-section">
+      <div class="help-section-header" onclick="toggleHelp(this)">
+        <span class="h-icon">📊</span>
+        <h3>The Bristol Stool Scale</h3>
+        <i class="chevron">▼</i>
+      </div>
+      <div class="help-section-body">
+        <p style="font-size:13px;color:var(--mid);line-height:1.6;margin-bottom:14px;">The <strong>Bristol Stool Form Scale</strong> is a medical diagnostic tool developed at the University of Bristol in 1997. It classifies stool into 7 types and is widely used by gastroenterologists and GPs to assess bowel health.</p>
+        <div class="help-bristol-row">
+          <div class="hb-num hb-1">1</div>
+          <div class="hb-text"><strong>Separate Hard Lumps</strong><span>Like small stones — very hard to pass</span></div>
+          <span class="hb-tag hard">Constipated</span>
+        </div>
+        <div class="help-bristol-row">
+          <div class="hb-num hb-2">2</div>
+          <div class="hb-text"><strong>Lumpy Sausage</strong><span>Sausage-shaped but lumpy, hard</span></div>
+          <span class="hb-tag hard">Hard</span>
+        </div>
+        <div class="help-bristol-row">
+          <div class="hb-num hb-3">3</div>
+          <div class="hb-text"><strong>Sausage with Cracks</strong><span>Like a sausage with surface cracks</span></div>
+          <span class="hb-tag ideal">Normal</span>
+        </div>
+        <div class="help-bristol-row">
+          <div class="hb-num hb-4">4</div>
+          <div class="hb-text"><strong>Smooth Soft Sausage</strong><span>Smooth, soft — the ideal type</span></div>
+          <span class="hb-tag ideal">Ideal ✓</span>
+        </div>
+        <div class="help-bristol-row">
+          <div class="hb-num hb-5">5</div>
+          <div class="hb-text"><strong>Soft Blobs</strong><span>Soft blobs with clear-cut edges</span></div>
+          <span class="hb-tag loose">Soft</span>
+        </div>
+        <div class="help-bristol-row">
+          <div class="hb-num hb-6">6</div>
+          <div class="hb-text"><strong>Fluffy / Mushy</strong><span>Ragged edges, mushy consistency</span></div>
+          <span class="hb-tag loose">Loose</span>
+        </div>
+        <div class="help-bristol-row">
+          <div class="hb-num hb-7">7</div>
+          <div class="hb-text"><strong>Entirely Liquid</strong><span>No solid pieces — watery</span></div>
+          <span class="hb-tag liquid">Liquid</span>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin-top:14px;line-height:1.6;">Types 1–2 suggest constipation. Types 3–4 are considered healthy. Types 5–7 suggest increasing diarrhoea. Persistent extremes should always be discussed with your doctor.</p>
+      </div>
+    </div>
+
+    <!-- Colour Guide -->
+    <div class="help-section">
+      <div class="help-section-header" onclick="toggleHelp(this)">
+        <span class="h-icon">🎨</span>
+        <h3>What Do the Colours Mean?</h3>
+        <i class="chevron">▼</i>
+      </div>
+      <div class="help-section-body">
+        <div class="help-colour-row"><div class="hdot" style="background:#8B5E3C;"></div><span class="hc-label">Brown</span><span class="hc-desc">Healthy — the normal colour</span></div>
+        <div class="help-colour-row"><div class="hdot" style="background:#4a2e1a;"></div><span class="hc-label">Dark Brown</span><span class="hc-desc">Normal, often after high-protein meals</span></div>
+        <div class="help-colour-row"><div class="hdot" style="background:#c4915a;"></div><span class="hc-label">Light Brown</span><span class="hc-desc">Normal variation, may indicate less bile</span></div>
+        <div class="help-colour-row"><div class="hdot" style="background:#e6c84a;"></div><span class="hc-label">Yellow</span><span class="hc-desc">Can indicate excess fat — worth monitoring</span></div>
+        <div class="help-colour-row"><div class="hdot" style="background:#5a9e4a;"></div><span class="hc-label">Green</span><span class="hc-desc">Often from leafy vegetables or fast transit</span></div>
+        <div class="help-colour-row"><div class="hdot" style="background:#1a1a1a;"></div><span class="hc-label">Black</span><span class="hc-desc" style="color:var(--rose);font-weight:700;">⚠️ May indicate upper GI bleeding — seek advice</span></div>
+        <div class="help-colour-row"><div class="hdot" style="background:#c0392b;"></div><span class="hc-label">Red / Blood</span><span class="hc-desc" style="color:var(--rose);font-weight:700;">⚠️ Visible blood — always discuss with your doctor</span></div>
+        <div class="help-colour-row"><div class="hdot" style="background:#c8c0b8;"></div><span class="hc-label">Pale / Grey</span><span class="hc-desc" style="color:var(--rose);font-weight:700;">⚠️ May indicate a bile or liver issue — seek advice</span></div>
+      </div>
+    </div>
+
+    <!-- Other Fields -->
+    <div class="help-section">
+      <div class="help-section-header" onclick="toggleHelp(this)">
+        <span class="h-icon">📝</span>
+        <h3>Understanding the Other Fields</h3>
+        <i class="chevron">▼</i>
+      </div>
+      <div class="help-section-body">
+        <p style="font-size:13px;font-weight:800;color:var(--dark);margin-bottom:6px;">🚨 Urgency (1–10)</p>
+        <p style="font-size:13px;color:var(--mid);line-height:1.6;margin-bottom:14px;">How urgently did you need to go? 1 = no rush at all, 10 = you couldn't wait another second. High urgency is a common and significant symptom in IBD and IBS.</p>
+
+        <p style="font-size:13px;font-weight:800;color:var(--dark);margin-bottom:6px;">⚡ Pain / Discomfort (0–10)</p>
+        <p style="font-size:13px;color:var(--mid);line-height:1.6;margin-bottom:14px;">Rate any pain during or after the movement. 0 = completely painless, 10 = severe pain. This helps your doctor see patterns of pain over time.</p>
+
+        <p style="font-size:13px;font-weight:800;color:var(--dark);margin-bottom:6px;">😖 Ease of Passing</p>
+        <p style="font-size:13px;color:var(--mid);line-height:1.6;margin-bottom:14px;">How easy was it? This combines Bristol type with effort required. Straining even for soft stools can be a useful symptom for your doctor to know about.</p>
+
+        <p style="font-size:13px;font-weight:800;color:var(--dark);margin-bottom:6px;">🩸 Symptoms</p>
+        <p style="font-size:13px;color:var(--mid);line-height:1.6;margin-bottom:14px;">Tap any that apply. <strong>Blood</strong> or <strong>Mucus</strong> are particularly important to log — your doctor will want to know the frequency of these. <strong>Incomplete Emptying</strong> (tenesmus) is a common IBD symptom.</p>
+
+        <p style="font-size:13px;font-weight:800;color:var(--dark);margin-bottom:6px;">📷 Photos</p>
+        <p style="font-size:13px;color:var(--mid);line-height:1.6;margin-bottom:0;">Completely optional. Photos are stored only on your device and are never uploaded. They can help your doctor assess consistency or colour more accurately. Photos are <em>not</em> included in CSV exports.</p>
+      </div>
+    </div>
+
+    <!-- Navigating the App -->
+    <div class="help-section">
+      <div class="help-section-header" onclick="toggleHelp(this)">
+        <span class="h-icon">🗺️</span>
+        <h3>Navigating the App</h3>
+        <i class="chevron">▼</i>
+      </div>
+      <div class="help-section-body">
+        <div class="help-step">
+          <div class="step-num" style="background:var(--mint);">🏠</div>
+          <p><strong>Home</strong> — Your dashboard. Shows today's count, weekly total, average Bristol type, and your recent entries. Tap any entry to see its full details.</p>
+        </div>
+        <div class="help-step">
+          <div class="step-num" style="background:var(--mint);">📋</div>
+          <p><strong>History</strong> — Browse all your entries. Use the filter bar at the top to show only specific Bristol types. Tap the 🗑 icon to delete an individual entry.</p>
+        </div>
+        <div class="help-step">
+          <div class="step-num" style="background:var(--mint);">➕</div>
+          <p><strong>Log</strong> — The main logging form. Bristol type is required; everything else is optional. The date/time defaults to now but you can change it to backfill an entry.</p>
+        </div>
+        <div class="help-step">
+          <div class="step-num" style="background:var(--mint);">📊</div>
+          <p><strong>Stats</strong> — Charts and trends including daily frequency, Bristol type distribution, pain &amp; urgency over time, and colour breakdown. Quick insights highlight anything notable.</p>
+        </div>
+        <div class="help-step">
+          <div class="step-num" style="background:var(--mint);">⚙️</div>
+          <p><strong>Export &amp; Settings</strong> — Share a CSV with your doctor, back up all data as JSON, restore from a backup, or clear all data.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Your Data & Privacy -->
+    <div class="help-section">
+      <div class="help-section-header" onclick="toggleHelp(this)">
+        <span class="h-icon">🔒</span>
+        <h3>Your Data &amp; Privacy</h3>
+        <i class="chevron">▼</i>
+      </div>
+      <div class="help-section-body">
+        <div class="help-step">
+          <div class="step-num">🛡</div>
+          <p><strong>All data is stored only on your device.</strong> Nothing is sent to any server, cloud, or third party — ever.</p>
+        </div>
+        <div class="help-step">
+          <div class="step-num">💾</div>
+          <p>Use <strong>Backup Data (JSON)</strong> regularly to save a copy of all your entries. If you switch devices, or uninstall and reinstall the app, you can restore from this backup.</p>
+        </div>
+        <div class="help-step">
+          <div class="step-num">📊</div>
+          <p>The <strong>CSV export</strong> contains all your text entries in a format your doctor can open in Excel or any spreadsheet tool. Photos are stored separately and are not included in the CSV.</p>
+        </div>
+        <div class="help-step">
+          <div class="step-num">🗑</div>
+          <p>Your data stays until you delete it. Uninstalling the app or using <strong>Clear All Data</strong> will permanently remove your entries, so keep a JSON backup if you want to be safe.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="help-section">
+      <div class="help-section-header" onclick="toggleHelp(this)">
+        <span class="h-icon">❓</span>
+        <h3>Frequently Asked Questions</h3>
+        <i class="chevron">▼</i>
+      </div>
+      <div class="help-section-body">
+        <div class="help-faq-q">Will my data be lost if I uninstall the app?</div>
+        <div class="help-faq-a">Yes — uninstalling the app (or using Clear All Data) deletes your entries. <strong>Always use the JSON backup feature</strong> (Export &amp; Settings → Backup Data) to keep a safe copy. Restore it any time using Restore Backup.</div>
+
+        <div class="help-faq-q">Can I use this on multiple devices?</div>
+        <div class="help-faq-a">Not automatically — data lives on each device separately. You can transfer by exporting a JSON backup on one device and importing it on another. Start with the device you use most often.</div>
+
+        <div class="help-faq-q">How do I share data with my doctor?</div>
+        <div class="help-faq-a">Go to <strong>Export &amp; Settings → Export as CSV</strong>. This creates a spreadsheet file you can share straight to email, save to your files, or print and bring to an appointment.</div>
+
+        <div class="help-faq-q">What if my storage is running low?</div>
+        <div class="help-faq-a">Photos use the most storage. If you notice issues, try limiting photos or removing older ones by editing entries. A JSON backup takes very little space compared to photos.</div>
+
+        <div class="help-faq-q">Does this replace medical advice?</div>
+        <div class="help-faq-a">No. Passage is a tracking tool to help you log symptoms and share data with your healthcare team. It does not diagnose conditions or replace professional medical advice. Always contact your doctor about concerning symptoms.</div>
+
+        <div class="help-faq-q">I found a bug or have a suggestion</div>
+        <div class="help-faq-a">Please use the contact button below to email the developer. Include your device type and browser, and describe what happened. Bug reports are genuinely appreciated!</div>
+      </div>
+    </div>
+
+    <!-- Contact -->
+    <div class="contact-card">
+      <div class="c-icon">✉️</div>
+      <h3>Questions or Bug Reports?</h3>
+      <p>Found something that isn't working, or have an idea for a new feature? Drop an email — all feedback is welcome and read personally.</p>
+      <a href="mailto:dev@walker-jones.eu?subject=Passage%20Feedback">✉️ dev@walker-jones.eu</a>
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="disclaimer-card">
+      <span class="di">⚕️</span>
+      <p><strong>Medical Disclaimer:</strong> Passage is a personal symptom-tracking tool only. It does not provide medical advice, diagnosis, or treatment recommendations. Always consult a qualified healthcare professional — especially if you notice blood, black stools, sudden changes, or severe pain.</p>
+    </div>
+
+    <div style="height:24px;"></div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="showScreen('home',this)">
+      <span class="icon">🏠</span>Home
+    </button>
+    <button class="nav-btn" onclick="showScreen('history',this)">
+      <span class="icon">📋</span>History
+    </button>
+    <button class="nav-btn log-btn" onclick="showScreen('log',this)">
+      <div class="icon-wrap"><span style="font-size:26px;">➕</span></div>
+      <span>Log</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('stats',this)">
+      <span class="icon">📊</span>Stats
+    </button>
+    <button class="nav-btn" onclick="showScreen('settings',this)">
+      <span class="icon">⚙️</span>Settings
+    </button>
+  </nav>
+
+  <!-- DETAIL MODAL -->
+  <div class="modal-overlay" id="detailModal" onclick="closeModal(event)">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <h2 id="modalTitle">Entry Detail</h2>
+        <button class="modal-close" onclick="closeModalDirect()">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────
+// Entries live in IndexedDB (durable, no ~5MB localStorage cap — important
+// for base64 photos). We keep a synchronous in-memory cache so the rest of
+// the app can stay synchronous; writes are persisted to IndexedDB.
+const STORAGE_KEY = 'gutdiary_v1';   // legacy localStorage key (migrated once)
+const DB_NAME = 'gutdiary';
+const DB_STORE = 'kv';
+const DB_ENTRIES_KEY = 'entries';
+
+let _db = null;
+let _entries = [];
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(DB_STORE)) db.createObjectStore(DB_STORE);
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+function idbGet(key) {
+  return new Promise((resolve, reject) => {
+    const req = _db.transaction(DB_STORE, 'readonly').objectStore(DB_STORE).get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+function idbSet(key, val) {
+  return new Promise((resolve, reject) => {
+    const tx = _db.transaction(DB_STORE, 'readwrite');
+    tx.objectStore(DB_STORE).put(val, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+// Hydrate the cache once at startup, migrating any old localStorage data.
+async function initStorage() {
+  try {
+    _db = await openDB();
+    const stored = await idbGet(DB_ENTRIES_KEY);
+    if (Array.isArray(stored)) {
+      _entries = stored;
+    } else {
+      // One-time migration from the old localStorage-based version
+      try {
+        const legacy = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (Array.isArray(legacy) && legacy.length) {
+          _entries = legacy;
+          await idbSet(DB_ENTRIES_KEY, _entries);
+          localStorage.removeItem(STORAGE_KEY); // reclaim the space
+        }
+      } catch {}
+    }
+  } catch (e) {
+    // IndexedDB unavailable — degrade gracefully to localStorage
+    _db = null;
+    try { _entries = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { _entries = []; }
+  }
+}
+
+function loadEntries() { return _entries; }
+function saveEntries(arr) {
+  _entries = arr;
+  if (_db) {
+    idbSet(DB_ENTRIES_KEY, arr).catch(() => {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); } catch {}
+    });
+  } else {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); } catch {}
+  }
+}
+
+const BRISTOL_LABELS = {
+  1:'Separate Hard Lumps', 2:'Lumpy Sausage', 3:'Cracked Sausage',
+  4:'Smooth Sausage', 5:'Soft Blobs', 6:'Fluffy/Mushy', 7:'Entirely Liquid'
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────
+let currentPhotos = []; // base64 strings
+let currentBristol = null;
+let currentColour = null;
+let currentSymptoms = [];
+let currentEase = null;
+let charts = {};
+let historyFilter = 'all';
+
+// ── NAV ───────────────────────────────────────────────────────────────
+function showScreen(name, btn) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+
+  if (name === 'home') renderDashboard();
+  if (name === 'stats') { setTimeout(renderCharts, 50); }
+  if (name === 'history') renderHistory();
+  if (name === 'log') resetForm();
+  if (name === 'settings') {
+    const tog = document.getElementById('darkModeToggle');
+    if (tog) tog.checked = document.documentElement.getAttribute('data-dark') === 'true';
+  }
+}
+
+// ── HEADER DATE ───────────────────────────────────────────────────────
+function updateHeaderDate() {
+  const now = new Date();
+  document.getElementById('headerDate').innerHTML =
+    now.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}) + '<br>' +
+    now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+}
+updateHeaderDate();
+setInterval(updateHeaderDate, 30000);
+
+// ── BRISTOL PICKER ────────────────────────────────────────────────────
+document.querySelectorAll('.bristol-opt').forEach(opt => {
+  opt.addEventListener('click', () => {
+    document.querySelectorAll('.bristol-opt').forEach(o => o.classList.remove('selected','selected-1','selected-2','selected-5','selected-6','selected-7'));
+    const v = parseInt(opt.dataset.val);
+    currentBristol = v;
+    opt.classList.add('selected');
+    if (v===1||v===2) opt.classList.add('selected-'+v);
+    if (v===5||v===6) opt.classList.add('selected-'+v);
+    if (v===7) opt.classList.add('selected-7');
+  });
+});
+
+// ── COLOUR PICKER ─────────────────────────────────────────────────────
+document.querySelectorAll('.colour-swatch').forEach(sw => {
+  sw.addEventListener('click', () => {
+    document.querySelectorAll('.colour-swatch').forEach(s => s.classList.remove('selected'));
+    sw.classList.add('selected');
+    currentColour = sw.dataset.val;
+  });
+});
+
+// ── PILL GROUPS ───────────────────────────────────────────────────────
+document.querySelectorAll('#symptomGroup .pill').forEach(p => {
+  p.addEventListener('click', () => {
+    p.classList.toggle('selected');
+    const v = p.dataset.val;
+    if (currentSymptoms.includes(v)) currentSymptoms = currentSymptoms.filter(x=>x!==v);
+    else currentSymptoms.push(v);
+  });
+});
+document.querySelectorAll('#easeGroup .pill').forEach(p => {
+  p.addEventListener('click', () => {
+    document.querySelectorAll('#easeGroup .pill').forEach(x=>x.classList.remove('selected'));
+    p.classList.add('selected');
+    currentEase = p.dataset.val;
+  });
+});
+
+// ── SLIDERS ───────────────────────────────────────────────────────────
+const urgencyDescs = ['','None','Very Low','Low','Mild','Moderate','Noticeable','High','Very High','Urgent','Couldn\'t Wait'];
+const painDescs = ['None','Minimal','Very Mild','Mild','Uncomfortable','Moderate','Significant','Intense','Very Intense','Severe','Excruciating'];
+
+function updateSlider(el, type) {
+  const v = parseInt(el.value);
+  const pct = ((v - parseInt(el.min)) / (parseInt(el.max) - parseInt(el.min))) * 100;
+  el.style.setProperty('--pct', pct + '%');
+  if (type === 'urgency') document.getElementById('urgencyLabel').textContent = v + ' – ' + (urgencyDescs[v]||v);
+  if (type === 'pain')    document.getElementById('painLabel').textContent    = v + ' – ' + (painDescs[v]||v);
+}
+updateSlider(document.getElementById('urgencySlider'), 'urgency');
+updateSlider(document.getElementById('painSlider'), 'pain');
+
+// ── PHOTOS ────────────────────────────────────────────────────────────
+function handlePhotos(e) {
+  const files = [...e.target.files];
+  files.forEach(f => {
+    const r = new FileReader();
+    r.onload = ev => {
+      currentPhotos.push(ev.target.result);
+      renderPhotoPreview();
+    };
+    r.readAsDataURL(f);
+  });
+  e.target.value = '';
+}
+function renderPhotoPreview() {
+  const el = document.getElementById('photoPreview');
+  el.innerHTML = currentPhotos.map((p,i) => `
+    <div class="photo-thumb">
+      <img src="${p}">
+      <button class="rm" onclick="removePhoto(${i})">✕</button>
+    </div>`).join('');
+}
+function removePhoto(i) {
+  currentPhotos.splice(i,1);
+  renderPhotoPreview();
+}
+
+// ── DATETIME DEFAULT ──────────────────────────────────────────────────
+function setDefaultDatetime() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const s = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  document.getElementById('entryDatetime').value = s;
+}
+
+// ── FORM RESET ────────────────────────────────────────────────────────
+function resetForm() {
+  currentBristol = null; currentColour = null; currentSymptoms = []; currentEase = null; currentPhotos = [];
+  document.querySelectorAll('.bristol-opt').forEach(o=>o.classList.remove('selected','selected-1','selected-2','selected-5','selected-6','selected-7'));
+  document.querySelectorAll('.colour-swatch').forEach(s=>s.classList.remove('selected'));
+  document.querySelectorAll('#symptomGroup .pill, #easeGroup .pill').forEach(p=>p.classList.remove('selected'));
+  document.getElementById('urgencySlider').value = 5; updateSlider(document.getElementById('urgencySlider'),'urgency');
+  document.getElementById('painSlider').value = 0; updateSlider(document.getElementById('painSlider'),'pain');
+  document.getElementById('entryNotes').value = '';
+  document.getElementById('photoPreview').innerHTML = '';
+  setDefaultDatetime();
+  document.getElementById('screen-log').scrollTop = 0;
+}
+
+// ── SAVE ENTRY ────────────────────────────────────────────────────────
+function saveEntry() {
+  if (!currentBristol) { showToast('⚠️ Please select a Bristol type'); return; }
+  const entry = {
+    id: Date.now(),
+    datetime: document.getElementById('entryDatetime').value || new Date().toISOString(),
+    bristolType: currentBristol,
+    colour: currentColour,
+    urgency: parseInt(document.getElementById('urgencySlider').value),
+    pain: parseInt(document.getElementById('painSlider').value),
+    symptoms: [...currentSymptoms],
+    ease: currentEase,
+    notes: document.getElementById('entryNotes').value.trim(),
+    photos: [...currentPhotos]
+  };
+  const entries = loadEntries();
+  entries.unshift(entry);
+  saveEntries(entries);
+  showToast('✅ Entry saved!');
+  showScreen('home', document.querySelector('.nav-btn:first-child'));
+  document.querySelector('.nav-btn:first-child').classList.add('active');
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────
+function renderDashboard() {
+  const entries = loadEntries();
+  const today = new Date(); today.setHours(0,0,0,0);
+  const weekAgo = new Date(today); weekAgo.setDate(weekAgo.getDate()-6);
+
+  const todayEntries = entries.filter(e => new Date(e.datetime) >= today);
+  const weekEntries  = entries.filter(e => new Date(e.datetime) >= weekAgo);
+  const avgType = weekEntries.length ? (weekEntries.reduce((s,e)=>s+e.bristolType,0)/weekEntries.length).toFixed(1) : '–';
+
+  // Average pain over the last 7 days — a metric worth raising at an appointment
+  const painVals = weekEntries.map(e => Number(e.pain)).filter(v => !isNaN(v));
+  const avgPain = painVals.length ? (painVals.reduce((s,v)=>s+v,0)/painVals.length).toFixed(1) : '–';
+
+  document.getElementById('stat-today').textContent = todayEntries.length;
+  document.getElementById('stat-week').textContent  = weekEntries.length;
+  document.getElementById('stat-avg-type').textContent = avgType;
+  document.getElementById('stat-avg-pain').textContent = avgPain;
+
+  const list = document.getElementById('recentList');
+  const empty = document.getElementById('emptyHome');
+
+  if (!entries.length) {
+    list.style.display = 'none'; empty.style.display = 'block'; return;
+  }
+  list.style.display = 'block'; empty.style.display = 'none';
+
+  const recent = entries.slice(0,10);
+  list.innerHTML = '<p class="card-title" style="padding:0 4px 8px;font-size:14px;">Recent Entries</p>' +
+    recent.map(e => entryChip(e)).join('');
+}
+
+function entryChip(e) {
+  const dt = new Date(e.datetime);
+  const timeStr = dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  const dateStr = dt.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+  const symptoms = e.symptoms.length ? e.symptoms.slice(0,2).join(', ') : (e.colour || 'No extra symptoms');
+  return `<div class="entry-chip type-${e.bristolType}" onclick="showDetail(${e.id})">
+    <div class="entry-type-badge">${e.bristolType}</div>
+    <div class="entry-info">
+      <div class="title">Type ${e.bristolType} — ${BRISTOL_LABELS[e.bristolType]}</div>
+      <div class="sub">${symptoms}${e.photos.length?' · 📷'+e.photos.length:''}</div>
+    </div>
+    <div class="entry-time">${timeStr}<br><span style="font-weight:400;">${dateStr}</span></div>
+  </div>`;
+}
+
+// ── HISTORY ───────────────────────────────────────────────────────────
+document.querySelectorAll('.filter-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    historyFilter = chip.dataset.filter;
+    renderHistory();
+  });
+});
+
+// ── FILTER TOOLTIP ────────────────────────────────────────────────────
+(function() {
+  const tip = document.getElementById('filterTooltip');
+  let hideTimer = null;
+
+  function showTip(chip) {
+    const text = chip.dataset.tip;
+    if (!text) return;
+    clearTimeout(hideTimer);
+    tip.innerHTML = text.replace(/&#10;/g,'<br>').replace(/\n/g,'<br>');
+    tip.classList.add('visible');
+    positionTip(chip);
+  }
+
+  function hideTip() {
+    hideTimer = setTimeout(() => tip.classList.remove('visible'), 120);
+  }
+
+  function positionTip(chip) {
+    const r = chip.getBoundingClientRect();
+    const tw = 200;
+    let left = r.left + r.width / 2 - tw / 2;
+    // clamp within viewport
+    left = Math.max(8, Math.min(left, window.innerWidth - tw - 8));
+    tip.style.width = tw + 'px';
+    tip.style.left = left + 'px';
+    tip.style.top = (r.top - 8) + 'px'; // will be adjusted after render
+    // nudge up by tooltip height after paint
+    requestAnimationFrame(() => {
+      tip.style.top = (r.top - tip.offsetHeight - 10) + 'px';
+    });
+  }
+
+  // Desktop: hover
+  document.querySelectorAll('.filter-chip[data-tip]').forEach(chip => {
+    chip.addEventListener('mouseenter', () => showTip(chip));
+    chip.addEventListener('mouseleave', hideTip);
+    chip.addEventListener('focus', () => showTip(chip));
+    chip.addEventListener('blur', hideTip);
+  });
+
+  // Mobile: long-press (300ms hold)
+  let pressTimer = null;
+  document.querySelectorAll('.filter-chip[data-tip]').forEach(chip => {
+    chip.addEventListener('touchstart', (e) => {
+      pressTimer = setTimeout(() => {
+        showTip(chip);
+        setTimeout(hideTip, 2200);
+      }, 300);
+    }, { passive: true });
+    chip.addEventListener('touchend', () => clearTimeout(pressTimer));
+    chip.addEventListener('touchmove', () => clearTimeout(pressTimer));
+  });
+})();
+
+function renderHistory() {
+  let entries = loadEntries();
+  if (historyFilter !== 'all') entries = entries.filter(e=>e.bristolType==historyFilter);
+  const list = document.getElementById('historyList');
+  const empty = document.getElementById('emptyHistory');
+  if (!entries.length) { list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+
+  // Group by date
+  const groups = {};
+  entries.forEach(e => {
+    const d = new Date(e.datetime).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    if (!groups[d]) groups[d] = [];
+    groups[d].push(e);
+  });
+
+  list.innerHTML = Object.entries(groups).map(([date, es]) => `
+    <p style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;padding:10px 4px 6px;">${date}</p>
+    ${es.map(e => `<div class="entry-chip type-${e.bristolType}" onclick="showDetail(${e.id})" style="position:relative;">
+      <div class="entry-type-badge">${e.bristolType}</div>
+      <div class="entry-info">
+        <div class="title">Type ${e.bristolType} — ${BRISTOL_LABELS[e.bristolType]}</div>
+        <div class="sub">${e.colour||''}${e.symptoms.length?' · '+e.symptoms.slice(0,2).join(', '):''}${e.ease?' · '+e.ease:''}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+        <div class="entry-time">${new Date(e.datetime).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div>
+        <button class="del-btn" onclick="event.stopPropagation();deleteEntry(${e.id})">🗑</button>
+      </div>
+    </div>`).join('')}
+  `).join('');
+}
+
+function deleteEntry(id) {
+  if (!confirm('Delete this entry?')) return;
+  const entries = loadEntries().filter(e=>e.id!==id);
+  saveEntries(entries);
+  renderHistory();
+  showToast('🗑️ Entry deleted');
+}
+
+// ── DETAIL MODAL ──────────────────────────────────────────────────────
+function showDetail(id) {
+  const e = loadEntries().find(x=>x.id===id);
+  if (!e) return;
+  const dt = new Date(e.datetime);
+  document.getElementById('modalTitle').textContent =
+    `Type ${e.bristolType} — ${dt.toLocaleDateString('en-GB',{day:'numeric',month:'short'})} at ${dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
+
+  document.getElementById('modalBody').innerHTML = `
+    <div class="detail-row"><span class="lbl">Bristol Type</span><span class="val">Type ${e.bristolType} — ${BRISTOL_LABELS[e.bristolType]}</span></div>
+    <div class="detail-row"><span class="lbl">Colour</span><span class="val">${e.colour||'Not recorded'}</span></div>
+    <div class="detail-row"><span class="lbl">Urgency</span><span class="val">${e.urgency}/10 — ${urgencyDescs[e.urgency]||e.urgency}</span></div>
+    <div class="detail-row"><span class="lbl">Pain</span><span class="val">${e.pain}/10 — ${painDescs[e.pain]||e.pain}</span></div>
+    <div class="detail-row"><span class="lbl">Ease</span><span class="val">${e.ease||'Not recorded'}</span></div>
+    <div class="detail-row"><span class="lbl">Symptoms</span><span class="val">${e.symptoms.join(', ')||'None'}</span></div>
+    ${e.notes ? `<div class="detail-row"><span class="lbl">Notes</span><span class="val">${e.notes}</span></div>` : ''}
+    ${e.photos.length ? `<div style="margin-top:12px;font-weight:700;font-size:13px;color:var(--muted);">Photos</div><div class="detail-photos">${e.photos.map(p=>`<img src="${p}">`).join('')}</div>` : ''}
+  `;
+
+  document.getElementById('detailModal').classList.add('open');
+}
+function closeModal(ev) { if (ev.target === document.getElementById('detailModal')) closeModalDirect(); }
+function closeModalDirect() { document.getElementById('detailModal').classList.remove('open'); }
+
+// ── CHARTS ────────────────────────────────────────────────────────────
+function renderCharts() {
+  const entries = loadEntries();
+  const mintColor = '#1D9E75';
+
+  // Daily counts (14 days)
+  const days = Array.from({length:14},(_,i)=>{ const d=new Date(); d.setDate(d.getDate()-13+i); return d; });
+  const dayCounts = days.map(d => {
+    const s = new Date(d); s.setHours(0,0,0,0);
+    const e2 = new Date(d); e2.setHours(23,59,59,999);
+    return entries.filter(e=>{ const t=new Date(e.datetime); return t>=s&&t<=e2; }).length;
+  });
+  const dayLabels = days.map(d=>d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}));
+
+  destroyChart('chartDaily');
+  charts.daily = new Chart(document.getElementById('chartDaily'), {
+    type:'bar',
+    data:{ labels:dayLabels, datasets:[{ data:dayCounts, backgroundColor:mintColor+'aa', borderColor:mintColor, borderWidth:2, borderRadius:6 }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true,ticks:{stepSize:1,color:'#8ca898'},grid:{color:'#e8f0ec'}}, x:{ticks:{maxRotation:45,color:'#8ca898',font:{size:9}},grid:{display:false}} }}
+  });
+
+  // Type distribution
+  const typeCounts = [1,2,3,4,5,6,7].map(t=>entries.filter(e=>e.bristolType===t).length);
+  destroyChart('chartType');
+  charts.type = new Chart(document.getElementById('chartType'), {
+    type:'bar',
+    data:{ labels:['T1','T2','T3','T4','T5','T6','T7'], datasets:[{ data:typeCounts, backgroundColor:['#e8706a','#e89070','#1D9E75','#0c6b54','#f5a623','#e8706a','#c0392b'], borderRadius:6 }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true,ticks:{stepSize:1,color:'#8ca898'},grid:{color:'#e8f0ec'}}, x:{ticks:{color:'#8ca898'},grid:{display:false}} }}
+  });
+
+  // Pain & urgency over last 14 days
+  const painData = days.map(d => {
+    const s=new Date(d); s.setHours(0,0,0,0); const e2=new Date(d); e2.setHours(23,59,59,999);
+    const dayEs = entries.filter(e=>{const t=new Date(e.datetime);return t>=s&&t<=e2;});
+    return dayEs.length ? dayEs.reduce((a,x)=>a+x.pain,0)/dayEs.length : null;
+  });
+  const urgencyData = days.map(d => {
+    const s=new Date(d); s.setHours(0,0,0,0); const e2=new Date(d); e2.setHours(23,59,59,999);
+    const dayEs = entries.filter(e=>{const t=new Date(e.datetime);return t>=s&&t<=e2;});
+    return dayEs.length ? dayEs.reduce((a,x)=>a+x.urgency,0)/dayEs.length : null;
+  });
+  destroyChart('chartPain');
+  charts.pain = new Chart(document.getElementById('chartPain'), {
+    type:'line',
+    data:{ labels:dayLabels, datasets:[
+      { label:'Pain', data:painData, borderColor:'#e8706a', backgroundColor:'#e8706a22', fill:true, tension:0.4, pointRadius:3, spanGaps:true },
+      { label:'Urgency', data:urgencyData, borderColor:'#f5a623', backgroundColor:'#f5a62322', fill:true, tension:0.4, pointRadius:3, spanGaps:true }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'top',labels:{font:{family:'Nunito',weight:'700'},color:'#4a6357'}}}, scales:{ y:{min:0,max:10,ticks:{color:'#8ca898'},grid:{color:'#e8f0ec'}}, x:{ticks:{maxRotation:45,color:'#8ca898',font:{size:9}},grid:{display:false}} }}
+  });
+
+  // Colour frequency
+  const colours = {};
+  entries.forEach(e=>{ if(e.colour){ colours[e.colour]=(colours[e.colour]||0)+1; }});
+  const colKeys = Object.keys(colours).sort((a,b)=>colours[b]-colours[a]);
+  const colMap = {'Brown':'#8B5E3C','Dark Brown':'#4a2e1a','Light Brown':'#c4915a','Yellow':'#e6c84a','Green':'#5a9e4a','Black':'#1a1a1a','Red/Blood':'#c0392b','Pale/Grey':'#c8c0b8'};
+  destroyChart('chartColour');
+  charts.colour = new Chart(document.getElementById('chartColour'), {
+    type:'doughnut',
+    data:{ labels:colKeys, datasets:[{ data:colKeys.map(k=>colours[k]), backgroundColor:colKeys.map(k=>colMap[k]||'#8ca898'), borderWidth:3, borderColor:'white' }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'right',labels:{font:{family:'Nunito',weight:'700',size:11},color:'#4a6357',boxWidth:14}}} }
+  });
+
+  // Insights
+  renderInsights(entries);
+}
+
+function destroyChart(id) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+function renderInsights(entries) {
+  const row = document.getElementById('insightRow');
+  if (!entries.length) { row.innerHTML='<span style="font-size:13px;color:var(--muted);">Log some entries to see insights here!</span>'; return; }
+
+  const chips = [];
+  const total = entries.length;
+  chips.push(`<div class="insight-chip">📋 ${total} total entries</div>`);
+
+  const avgType = (entries.reduce((s,e)=>s+e.bristolType,0)/total).toFixed(1);
+  chips.push(`<div class="insight-chip ${parseFloat(avgType)<3||parseFloat(avgType)>5?'rose':''}">🌊 Avg type: ${avgType}</div>`);
+
+  const bloodCount = entries.filter(e=>e.symptoms.includes('Blood')).length;
+  if (bloodCount) chips.push(`<div class="insight-chip rose">🩸 Blood noted ${bloodCount}×</div>`);
+
+  const avgPain = (entries.reduce((s,e)=>s+e.pain,0)/total).toFixed(1);
+  if (parseFloat(avgPain)>3) chips.push(`<div class="insight-chip amber">⚡ Avg pain: ${avgPain}/10</div>`);
+
+  const type7 = entries.filter(e=>e.bristolType===7).length;
+  if (type7>2) chips.push(`<div class="insight-chip rose">💧 Liquid stools ${type7}×</div>`);
+
+  row.innerHTML = chips.join('');
+}
+
+// ── EXPORT CSV ────────────────────────────────────────────────────────
+// Saves text to a file and opens the native share/save sheet on Android.
+// Falls back to a browser download when running outside the app (e.g. dev).
+async function saveAndShareFile(filename, data, mimeType, toastMsg) {
+  const cap = window.Capacitor;
+  if (cap && cap.isNativePlatform && cap.isNativePlatform()) {
+    try {
+      const { Filesystem, Share } = cap.Plugins;
+      await Filesystem.writeFile({ path: filename, data, directory: 'CACHE', encoding: 'utf8' });
+      const { uri } = await Filesystem.getUri({ path: filename, directory: 'CACHE' });
+      await Share.share({ title: filename, files: [uri], dialogTitle: 'Share or save your data' });
+      showToast(toastMsg);
+    } catch (err) {
+      // The share sheet rejects when the user dismisses it — not an error.
+      if (err && /cancel/i.test(err.message || '')) return;
+      showToast('⚠️ Could not export file');
+    }
+    return;
+  }
+  // Browser fallback
+  const blob = new Blob([data], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  a.click(); URL.revokeObjectURL(url);
+  showToast(toastMsg);
+}
+
+function exportCSV() {
+  const entries = loadEntries();
+  if (!entries.length) { showToast('No entries to export'); return; }
+  const headers = ['Date','Time','Bristol Type','Bristol Description','Colour','Urgency (1-10)','Pain (1-10)','Ease','Symptoms','Notes','Has Photos'];
+  const rows = entries.map(e => {
+    const dt = new Date(e.datetime);
+    return [
+      dt.toLocaleDateString('en-GB'),
+      dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}),
+      e.bristolType,
+      BRISTOL_LABELS[e.bristolType],
+      e.colour||'',
+      e.urgency,
+      e.pain,
+      e.ease||'',
+      e.symptoms.join('; '),
+      (e.notes||'').replace(/,/g,' '),
+      e.photos.length ? 'Yes ('+e.photos.length+')' : 'No'
+    ].map(v=>`"${v}"`).join(',');
+  });
+  const csv = [headers.join(','), ...rows].join('\n');
+  saveAndShareFile('passage-export-'+new Date().toISOString().slice(0,10)+'.csv', csv, 'text/csv', '📊 CSV ready to share!');
+}
+
+function exportJSON() {
+  const entries = loadEntries();
+  if (!entries.length) { showToast('No entries to export'); return; }
+  saveAndShareFile('passage-backup-'+new Date().toISOString().slice(0,10)+'.json', JSON.stringify(entries,null,2), 'application/json', '💾 Backup ready to share!');
+}
+
+function importJSON(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (!Array.isArray(data)) throw new Error('Invalid');
+      if (!confirm(`Import ${data.length} entries? This will merge with existing data.`)) return;
+      const existing = loadEntries();
+      const existingIds = new Set(existing.map(x=>x.id));
+      const merged = [...existing, ...data.filter(x=>!existingIds.has(x.id))];
+      merged.sort((a,b)=>new Date(b.datetime)-new Date(a.datetime));
+      saveEntries(merged);
+      showToast('📂 ' + data.length + ' entries imported!');
+    } catch { showToast('⚠️ Invalid backup file'); }
+  };
+  r.readAsText(file);
+  e.target.value = '';
+}
+
+function clearAllData() {
+  if (!confirm('Delete ALL data permanently? This cannot be undone.')) return;
+  if (!confirm('Are you sure? All entries and photos will be lost.')) return;
+  saveEntries([]);
+  try { localStorage.removeItem(STORAGE_KEY); } catch {}
+  showToast('🗑️ All data cleared');
+  renderDashboard();
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// ── HELP SCREEN TOGGLE (header ? button) ─────────────────────────────
+let previousScreen = 'home';
+function toggleHelpScreen() {
+  const helpActive = document.getElementById('screen-help').classList.contains('active');
+  if (helpActive) {
+    showScreen(previousScreen, document.querySelector(`.nav-btn[onclick*="'${previousScreen}'"]`));
+  } else {
+    const current = document.querySelector('.screen.active');
+    if (current && current.id !== 'screen-help') {
+      previousScreen = current.id.replace('screen-', '');
+    }
+    showScreen('help', null);
+  }
+}
+
+// ── HELP ACCORDION ───────────────────────────────────────────────────
+function toggleHelp(header) {
+  const body = header.nextElementSibling;
+  const isOpen = header.classList.contains('open');
+  header.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+}
+
+// ── DARK MODE ─────────────────────────────────────────────────────────
+function toggleDarkMode(on) {
+  document.documentElement.setAttribute('data-dark', on ? 'true' : 'false');
+  localStorage.setItem('gutdiary_dark', on ? '1' : '0');
+}
+function initDarkMode() {
+  const saved = localStorage.getItem('gutdiary_dark');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const on = saved !== null ? saved === '1' : prefersDark;
+  document.documentElement.setAttribute('data-dark', on ? 'true' : 'false');
+  const tog = document.getElementById('darkModeToggle');
+  if (tog) tog.checked = on;
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────
+(async function init() {
+  initDarkMode();          // apply theme immediately (no data dependency)
+  await initStorage();     // hydrate entries from IndexedDB before first render
+  renderDashboard();
+  setDefaultDatetime();
+  // Hold the native splash until the UI is painted, then hide it — closes the
+  // brief white flash on cold start. (No-op in a browser.)
+  const SplashScreen = window.Capacitor?.Plugins?.SplashScreen;
+  if (SplashScreen) {
+    requestAnimationFrame(() => requestAnimationFrame(() => SplashScreen.hide().catch(() => {})));
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+# ── Dependencies ───────────────────────────────────────────────
+node_modules/
+
+# ── Build output / signed binaries ─────────────────────────────
+*.apk
+*.aab
+dist/
+
+# ── Secrets: signing material — NEVER commit ───────────────────
+# (also covered under android/, duplicated here as a safety net)
+*.jks
+*.keystore
+**/keystore.properties
+
+# ── Local tooling / editor / IDE ───────────────────────────────
+.claude/
+.vscode/
+.idea/
+*.iml
+
+# ── OS cruft ───────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Logs ───────────────────────────────────────────────────────
+*.log
+npm-debug.log*
