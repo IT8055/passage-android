@@ -27,17 +27,18 @@ See [privacy-policy.html](privacy-policy.html).
 ## Features
 
 - Bristol Stool Scale (Types 1–7) with clear descriptions
-- Colour, urgency, pain, symptoms and ease-of-passing tracking
-- Optional photos, stored only on the device
-- Dashboard, charts (frequency, type distribution, pain/urgency trends, colour) and quick insights
+- Colour, urgency, pain, symptoms, notes and photos
+- Monthly calendar and filterable history (by type, colour, symptom, pain) — edit or delete any entry
+- Charts: daily frequency, type distribution, pain & urgency trends, time of day, symptom frequency
 - CSV export for your healthcare team; full JSON backup & restore
-- Dark mode; works completely offline
+- Three themes (including dark); works completely offline
 
 ## Tech
 
-A single-file web app (vanilla HTML/CSS/JS + [Chart.js](https://www.chartjs.org/), bundled
-locally) wrapped natively with [Capacitor](https://capacitorjs.com/). Storage is IndexedDB;
-file export/share uses the Capacitor Filesystem + Share plugins.
+A single-file web app (vanilla HTML/CSS/JS) wrapped natively with
+[Capacitor](https://capacitorjs.com/). Charts are hand-rolled inline SVG; the Space Grotesk and
+DM Sans fonts are bundled locally for offline use. Storage is IndexedDB; file export/share uses
+the Capacitor Filesystem + Share plugins.
 
 ```
 www/                 the app (index.html + bundled vendor/ and fonts/)

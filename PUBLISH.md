@@ -78,21 +78,25 @@ managing IBD, Crohn's, IBS, or anyone who wants to understand their gut better.
 
 Log an entry in seconds using the clinically recognised Bristol Stool Scale, then add as much
 or as little detail as you like: stool colour, urgency, pain, symptoms (blood, mucus, bloating,
-cramping and more), ease of passing, notes, and optional photos.
+cramping and more), notes, optional photos, and the date and time.
 
-See your patterns at a glance with a clean dashboard and clear charts — daily frequency, stool
-type distribution, pain and urgency trends, and colour breakdown — plus automatic insights.
+See your patterns at a glance with a clean dashboard, a monthly calendar, and clear charts —
+daily frequency, stool type distribution, pain and urgency trends, time of day, and your most
+common symptoms.
+
+Review your history any time: browse by calendar or list, filter by type, colour, symptom or
+pain level, and edit or delete past entries whenever you need to.
 
 When it's time for a doctor's appointment, export a CSV your GP, gastroenterologist or dietitian
 can open in any spreadsheet, or back up everything as a JSON file.
 
 • Bristol Stool Scale (Types 1–7) with clear descriptions
-• Colour, urgency, pain, symptoms and ease tracking
-• Optional photos, stored only on your device
-• Dashboard, charts and quick insights
+• Colour, urgency, pain, symptoms, notes and photos
+• Monthly calendar and filterable history — edit or delete any entry
+• Charts: frequency, type distribution, pain & urgency, time of day, symptoms
 • CSV export for your healthcare team
 • Full JSON backup and restore
-• Dark mode
+• Three themes, including a dark mode
 • Works completely offline
 
 YOUR PRIVACY COMES FIRST
