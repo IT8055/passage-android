@@ -4,8 +4,8 @@
   "description": "A private bowel-health record for people with IBD, Crohn's and IBS. Track the Bristol Stool Scale, symptoms, pain and urgency, and share a clear summary with your doctor. All data stays on your device.",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#F4F8F7",
-  "theme_color": "#085041",
+  "background_color": "#F7F4F0",
+  "theme_color": "#C0634A",
   "orientation": "portrait",
   "categories": ["health", "medical", "lifestyle"],
   "icons": [

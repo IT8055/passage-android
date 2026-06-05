@@ -6,1622 +6,120 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Passage">
-<meta name="theme-color" content="#085041">
+<meta name="theme-color" content="#C0634A" id="metaTheme">
 <meta name="description" content="Personal bowel health diary for IBD, Crohn's and IBS sufferers">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23085041'/><text y='78' x='50' text-anchor='middle' font-size='68' font-family='Georgia,serif' font-weight='bold' fill='white'>P</text></svg>">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'><rect width='28' height='28' rx='8' fill='%23C0634A'/><path d='M6 9.5 C9 7 19 7 22 9.5' stroke='white' stroke-width='2' fill='none' stroke-linecap='round'/><path d='M5.5 14 C9 11.5 19 11.5 22.5 14' stroke='white' stroke-width='2' fill='none' stroke-linecap='round'/><path d='M6 18.5 C9 16 19 16 22 18.5' stroke='white' stroke-width='2' fill='none' stroke-linecap='round' opacity='0.5'/></svg>">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Passage — Your gut health, on record</title>
 <link href="fonts/fonts.css" rel="stylesheet">
-<script src="vendor/chart.umd.min.js"></script>
 <style>
-  :root {
-    --mint:      #1D9E75;   /* primary */
-    --teal-deep: #085041;   /* deep teal — headers, strong accents */
-    --mint-lt:   #E1F5EE;   /* surface */
-    --mint-mid:  #9FE1CB;   /* accent */
-    --amber:     #C77E29;
-    --amber-lt:  #fbf3e8;
-    --rose:      #C0564E;
-    --rose-lt:   #f8ecea;
-    --sky:       #3E7E96;
-    --sky-lt:    #e8f1f4;
-    --sand:      #F4F8F7;
-    --dark:      #2C2C2A;
-    --mid:       #4A5A55;
-    --muted:     #819590;
-    --white:     #ffffff;
-    --shadow:    0 4px 20px rgba(8,80,65,0.10);
-    --shadow-lg: 0 8px 40px rgba(8,80,65,0.16);
-    --radius:    16px;
-    --radius-sm: 10px;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  html, body {
-    height: 100%;
-    font-family: 'Nunito', sans-serif;
-    background: var(--sand);
-    color: var(--dark);
-    overflow: hidden;
-  }
-
-  /* ── APP SHELL ── */
-  #app {
-    display: flex;
-    flex-direction: column;
-    height: 100dvh;
-    max-width: 480px;
-    margin: 0 auto;
-    background: var(--white);
-    position: relative;
-    overflow: hidden;
-  }
-
-  /* ── HEADER ── */
-  .app-header {
-    background: linear-gradient(135deg, var(--teal-deep) 0%, var(--mint) 100%);
-    color: white;
-    padding: 16px 20px 14px;
-    padding-top: max(16px, env(safe-area-inset-top));
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-shrink: 0;
-  }
-  .app-header h1 {
-    font-family: 'Fraunces', serif;
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: -0.3px;
-  }
-  .app-header h1 span { opacity: 0.75; font-weight: 400; font-size: 13px; display: block; letter-spacing: 0; font-family: 'Nunito', sans-serif; }
-  .header-help-btn {
-    width: 28px; height: 28px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.22);
-    border: 2px solid rgba(255,255,255,0.45);
-    color: white;
-    font-family: 'Fraunces', serif;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    transition: background 0.2s;
-    line-height: 1;
-  }
-  .header-help-btn:active { background: rgba(255,255,255,0.38); }
-  .header-date {
-    font-size: 11px;
-    opacity: 0.8;
-    text-align: right;
-    line-height: 1.4;
-  }
-
-  /* ── SCREENS ── */
-  .screen {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    display: none;
-    padding-bottom: calc(80px + env(safe-area-inset-bottom));
-    -webkit-overflow-scrolling: touch;
-  }
-  .screen.active { display: block; }
-
-  /* ── NAV ── */
-  .bottom-nav {
-    display: flex;
-    background: white;
-    border-top: 1px solid #e8f0ec;
-    padding-bottom: env(safe-area-inset-bottom);
-    flex-shrink: 0;
-    position: relative;
-    z-index: 10;
-  }
-  .nav-btn {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    padding: 10px 4px 8px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 10px;
-    font-family: 'Nunito', sans-serif;
-    font-weight: 700;
-    color: var(--muted);
-    transition: color 0.2s;
-  }
-  .nav-btn .icon { font-size: 22px; transition: transform 0.2s; }
-  .nav-btn.active { color: var(--mint); }
-  .nav-btn.active .icon { transform: scale(1.15); }
-  .nav-btn.log-btn { color: white; }
-  .nav-btn.log-btn .icon-wrap {
-    background: linear-gradient(135deg, var(--mint), #0c6b54);
-    width: 54px; height: 54px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 24px;
-    margin-top: -20px;
-    box-shadow: 0 4px 15px rgba(29,158,117,0.45);
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-  .nav-btn.log-btn.active .icon-wrap,
-  .nav-btn.log-btn:active .icon-wrap {
-    transform: scale(1.08);
-    box-shadow: 0 6px 20px rgba(29,158,117,0.55);
-  }
-  .nav-btn.log-btn span:last-child { color: var(--mint); margin-top: 2px; }
-
-  /* ── CARDS ── */
-  .card {
-    background: white;
-    border-radius: var(--radius);
-    padding: 18px;
-    box-shadow: var(--shadow);
-    margin: 12px 16px;
-  }
-  .card-title {
-    font-family: 'Fraunces', serif;
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--dark);
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  /* ── DASHBOARD ── */
-  .dash-hero {
-    background: linear-gradient(135deg, #E1F5EE 0%, #d4efe3 100%);
-    margin: 16px;
-    border-radius: var(--radius);
-    padding: 20px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  .stat-tile {
-    background: white;
-    border-radius: var(--radius-sm);
-    padding: 14px 12px;
-    text-align: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  }
-  .stat-tile .val {
-    font-family: 'Fraunces', serif;
-    font-size: 30px;
-    font-weight: 700;
-    color: var(--mint);
-    line-height: 1;
-  }
-  .stat-tile .lbl {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 4px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  .stat-tile.amber .val { color: var(--amber); }
-  .stat-tile.rose .val { color: var(--rose); }
-  .stat-tile.sky .val { color: var(--sky); }
-
-  .recent-list { padding: 0 16px; }
-  .entry-chip {
-    background: white;
-    border-radius: var(--radius-sm);
-    padding: 13px 16px;
-    margin-bottom: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    transition: transform 0.15s, box-shadow 0.15s;
-    position: relative;
-    overflow: hidden;
-  }
-  .entry-chip:active { transform: scale(0.98); }
-  .entry-chip::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 4px;
-    border-radius: 4px 0 0 4px;
-    background: var(--mint);
-  }
-  .entry-chip.type-1::before, .entry-chip.type-2::before { background: var(--rose); }
-  .entry-chip.type-3::before, .entry-chip.type-4::before { background: var(--mint); }
-  .entry-chip.type-5::before, .entry-chip.type-6::before { background: var(--amber); }
-  .entry-chip.type-7::before { background: #c0392b; }
-
-  .entry-type-badge {
-    width: 42px; height: 42px;
-    border-radius: 50%;
-    background: var(--mint-lt);
-    color: var(--teal-deep);
-    font-weight: 800;
-    font-size: 18px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-  .entry-info { flex: 1; min-width: 0; }
-  .entry-info .title {
-    font-weight: 700;
-    font-size: 14px;
-    color: var(--dark);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .entry-info .sub {
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 2px;
-  }
-  .entry-time {
-    font-size: 11px;
-    color: var(--muted);
-    font-weight: 600;
-    text-align: right;
-    flex-shrink: 0;
-  }
-  .entry-chip .del-btn {
-    background: var(--rose-lt);
-    border: none;
-    color: var(--rose);
-    border-radius: 8px;
-    padding: 6px 10px;
-    font-size: 16px;
-    cursor: pointer;
-    flex-shrink: 0;
-  }
-
-  /* ── LOG FORM ── */
-  .log-screen { background: var(--sand); }
-  .form-section {
-    background: white;
-    margin: 10px 16px;
-    border-radius: var(--radius);
-    padding: 18px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-  }
-  .form-section-title {
-    font-size: 13px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: var(--muted);
-    margin-bottom: 14px;
-  }
-
-  /* Bristol Scale picker */
-  .bristol-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .bristol-opt {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-    border-radius: var(--radius-sm);
-    border: 2px solid transparent;
-    background: var(--sand);
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .bristol-opt:active { transform: scale(0.98); }
-  .bristol-opt.selected {
-    border-color: var(--mint);
-    background: var(--mint-lt);
-  }
-  .bristol-opt.selected-1, .bristol-opt.selected-2 {
-    border-color: var(--rose);
-    background: var(--rose-lt);
-  }
-  .bristol-opt.selected-5, .bristol-opt.selected-6 {
-    border-color: var(--amber);
-    background: var(--amber-lt);
-  }
-  .bristol-opt.selected-7 {
-    border-color: #c0392b;
-    background: #fdf0ef;
-  }
-  .bristol-num {
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    background: var(--mint);
-    color: white;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 800;
-    font-size: 14px;
-    flex-shrink: 0;
-  }
-  .t1 .bristol-num, .t2 .bristol-num { background: var(--rose); }
-  .t5 .bristol-num, .t6 .bristol-num { background: var(--amber); }
-  .t7 .bristol-num { background: #c0392b; }
-  .bristol-icon { font-size: 22px; flex-shrink: 0; }
-  .bristol-desc { flex: 1; min-width: 0; }
-  .bristol-desc strong { font-size: 13px; font-weight: 700; display: block; }
-  .bristol-desc span { font-size: 11px; color: var(--muted); }
-  .bristol-tag {
-    font-size: 10px;
-    font-weight: 800;
-    padding: 3px 8px;
-    border-radius: 20px;
-    background: var(--mint-mid);
-    color: var(--mint);
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .tag-hard { background: #ffd6d4; color: var(--rose); }
-  .tag-ideal { background: var(--mint-mid); color: var(--mint); }
-  .tag-loose { background: #fde9c5; color: #b07d1a; }
-  .tag-liquid { background: #ffd6d4; color: #c0392b; }
-
-  /* Pill selectors */
-  .pill-group { display: flex; flex-wrap: wrap; gap: 8px; }
-  .pill {
-    padding: 8px 14px;
-    border-radius: 50px;
-    border: 2px solid #e0ece6;
-    background: var(--sand);
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--mid);
-    cursor: pointer;
-    transition: all 0.18s;
-    display: flex; align-items: center; gap: 5px;
-  }
-  .pill:active { transform: scale(0.95); }
-  .pill.selected {
-    background: var(--mint);
-    border-color: var(--mint);
-    color: white;
-  }
-  .pill.pill-amber.selected { background: var(--amber); border-color: var(--amber); }
-  .pill.pill-rose.selected  { background: var(--rose);  border-color: var(--rose); }
-  .pill.pill-sky.selected   { background: var(--sky);   border-color: var(--sky); }
-
-  /* Slider */
-  .slider-row { display: flex; align-items: center; gap: 12px; }
-  .slider-row input[type=range] {
-    flex: 1;
-    -webkit-appearance: none;
-    height: 6px;
-    border-radius: 3px;
-    background: linear-gradient(to right, var(--mint) var(--pct, 50%), #dde9e4 var(--pct, 50%));
-    outline: none;
-  }
-  .slider-row input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 22px; height: 22px;
-    border-radius: 50%;
-    background: var(--mint);
-    box-shadow: 0 2px 8px rgba(29,158,117,0.4);
-    cursor: pointer;
-  }
-  .slider-val {
-    font-weight: 800;
-    font-size: 18px;
-    color: var(--mint);
-    min-width: 28px;
-    text-align: center;
-  }
-  .slider-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-top: 4px; font-weight: 600; }
-
-  /* Textarea */
-  textarea {
-    width: 100%;
-    border: 2px solid #e0ece6;
-    border-radius: var(--radius-sm);
-    padding: 12px;
-    font-family: 'Nunito', sans-serif;
-    font-size: 14px;
-    color: var(--dark);
-    background: var(--sand);
-    resize: none;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  textarea:focus { border-color: var(--mint); }
-
-  /* Photo area */
-  .photo-area {
-    border: 2px dashed var(--mint-mid);
-    border-radius: var(--radius-sm);
-    padding: 20px;
-    text-align: center;
-    background: var(--mint-lt);
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-  }
-  .photo-area:active { transform: scale(0.98); }
-  .photo-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-  .photo-preview {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    margin-top: 10px;
-  }
-  .photo-thumb {
-    aspect-ratio: 1;
-    border-radius: 8px;
-    overflow: hidden;
-    position: relative;
-  }
-  .photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
-  .photo-thumb .rm { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-
-  /* Submit btn */
-  .submit-btn {
-    display: block;
-    width: calc(100% - 32px);
-    margin: 16px;
-    padding: 18px;
-    background: linear-gradient(135deg, var(--mint), #0c6b54);
-    color: white;
-    border: none;
-    border-radius: var(--radius);
-    font-family: 'Nunito', sans-serif;
-    font-size: 17px;
-    font-weight: 800;
-    cursor: pointer;
-    box-shadow: 0 4px 20px rgba(29,158,117,0.4);
-    transition: transform 0.15s, box-shadow 0.15s;
-    letter-spacing: 0.3px;
-  }
-  .submit-btn:active { transform: scale(0.97); box-shadow: 0 2px 10px rgba(29,158,117,0.3); }
-
-  /* ── STATS SCREEN ── */
-  .chart-wrap { position: relative; height: 200px; margin-top: 8px; }
-
-  /* ── HISTORY SCREEN ── */
-  .filter-bar {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 7px;
-    padding: 12px 16px 4px;
-  }
-  .filter-chip {
-    padding: 8px 4px;
-    border-radius: 50px;
-    border: 2px solid #e0ece6;
-    background: white;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--mid);
-    cursor: pointer;
-    white-space: nowrap;
-    text-align: center;
-    transition: all 0.18s;
-  }
-  .filter-chip:active { transform: scale(0.95); }
-  .filter-chip.active { background: var(--mint); border-color: var(--mint); color: white; }
-  /* "All" chip spans full width on its own row */
-  .filter-chip[data-filter="all"] { grid-column: 1 / -1; }
-
-  /* ── FILTER TOOLTIP ── */
-  .filter-tooltip {
-    position: fixed;
-    background: var(--dark);
-    color: white;
-    font-size: 12px;
-    font-weight: 700;
-    line-height: 1.45;
-    padding: 9px 13px;
-    border-radius: 10px;
-    pointer-events: none;
-    z-index: 200;
-    max-width: 200px;
-    text-align: center;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-    opacity: 0;
-    transform: translateY(4px);
-    transition: opacity 0.18s, transform 0.18s;
-  }
-  .filter-tooltip.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  .filter-tooltip::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 6px solid transparent;
-    border-top-color: var(--dark);
-  }
-  [data-dark="true"] .filter-tooltip { background: #e8f2ed; color: var(--dark); box-shadow: 0 4px 16px rgba(0,0,0,0.5); }
-  [data-dark="true"] .filter-tooltip::after { border-top-color: #e8f2ed; }
-
-  /* ── DARK MODE ── */
-  [data-dark="true"] {
-    --sand:    #151e19;
-    --white:   #1e2d26;
-    --dark:    #e8f2ed;
-    --mid:     #a8c4b4;
-    --muted:   #5a7a6a;
-    --mint-lt: #0d241d;
-    --mint-mid:#134034;
-    --amber-lt:#2a2010;
-    --rose-lt: #2d1715;
-    --sky-lt:  #0f2233;
-    --shadow:  0 4px 20px rgba(0,0,0,0.35);
-    --shadow-lg: 0 8px 40px rgba(0,0,0,0.45);
-  }
-  [data-dark="true"] body { background: var(--sand); }
-  [data-dark="true"] #app { background: var(--white); }
-  [data-dark="true"] .app-header { background: linear-gradient(135deg, #06382e 0%, #0c6b54 100%); }
-  [data-dark="true"] .screen-header { background: linear-gradient(135deg, #06382e, #0c6b54); }
-  [data-dark="true"] .help-hero { background: linear-gradient(135deg, #0c6b54, #0a4338); }
-  [data-dark="true"] .bottom-nav { background: #1e2d26; border-top-color: #2a3e32; }
-  [data-dark="true"] .card { background: #0e2a23; }
-  [data-dark="true"] .form-section { background: #0e2a23; box-shadow: none; }
-  [data-dark="true"] .entry-chip { background: #0e2a23; }
-  [data-dark="true"] .stat-tile { background: #0e2a23; }
-  [data-dark="true"] .export-btn { background: #0e2a23; }
-  [data-dark="true"] .help-section { background: #0e2a23; }
-  [data-dark="true"] .help-section-body { border-top-color: #2a3e32; }
-  [data-dark="true"] .help-section-header { background: #0d241d; }
-  [data-dark="true"] .help-section-header.open { background: #0d241d; }
-  [data-dark="true"] .modal-sheet { background: #1e2d26; }
-  [data-dark="true"] .modal-header { border-bottom-color: #2a3e32; }
-  [data-dark="true"] .modal-close { background: #2a3e32; }
-  [data-dark="true"] .detail-row { border-bottom-color: #2a3e32; }
-  [data-dark="true"] .filter-chip { background: #0e2a23; border-color: #2a3e32; }
-  [data-dark="true"] .install-banner { background: linear-gradient(135deg, #0d241d, #103027); }
-  [data-dark="true"] .contact-card { background: linear-gradient(135deg, #0f2233, #132b3f); }
-  [data-dark="true"] .disclaimer-card { background: #2d1715; }
-  [data-dark="true"] .disclaimer-card p { color: #e8a09d; }
-  [data-dark="true"] .bristol-opt { background: #0d241d; }
-  [data-dark="true"] .colour-swatch { background: #0d241d; }
-  [data-dark="true"] .pill { background: #0d241d; border-color: #2a3e32; }
-  [data-dark="true"] textarea { background: #0d241d; border-color: #2a3e32; color: var(--dark); }
-  [data-dark="true"] .photo-area { background: #0d241d; border-color: #2a3e32; }
-  [data-dark="true"] .slider-row input[type=range] { background: linear-gradient(to right, var(--mint) var(--pct,50%), #2a3e32 var(--pct,50%)); }
-  [data-dark="true"] input[type=datetime-local] { background: #0d241d; border-color: #2a3e32; color: var(--dark); }
-  [data-dark="true"] .log-screen { background: #151e19; }
-  [data-dark="true"] .dash-hero { background: linear-gradient(135deg, #0d241d, #103027); }
-  [data-dark="true"] .help-colour-row { border-bottom-color: #2a3e32; }
-  [data-dark="true"] .help-bristol-row { border-bottom-color: #2a3e32; }
-  [data-dark="true"] .help-faq-a { color: var(--mid); }
-  [data-dark="true"] .insight-chip { background: #0d241d; }
-  [data-dark="true"] .insight-chip.amber { background: #2a2010; }
-  [data-dark="true"] .insight-chip.rose  { background: #2d1715; }
-
-  /* Dark mode toggle switch */
-  .dm-toggle-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--white);
-    margin: 10px 16px;
-    padding: 16px 18px;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-  }
-  .dm-toggle-row .dm-label { display: flex; align-items: center; gap: 12px; }
-  .dm-toggle-row .dm-ico { font-size: 26px; width: 48px; height: 48px; background: var(--mint-lt); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; }
-  .dm-toggle-row .dm-txt strong { display: block; font-size: 15px; font-weight: 800; color: var(--dark); }
-  .dm-toggle-row .dm-txt span { font-size: 12px; color: var(--muted); }
-  .toggle-switch {
-    position: relative;
-    width: 52px; height: 28px;
-    flex-shrink: 0;
-  }
-  .toggle-switch input { opacity: 0; width: 0; height: 0; }
-  .toggle-track {
-    position: absolute;
-    inset: 0;
-    background: #d0ddd8;
-    border-radius: 50px;
-    cursor: pointer;
-    transition: background 0.25s;
-  }
-  .toggle-track::after {
-    content: '';
-    position: absolute;
-    left: 3px; top: 3px;
-    width: 22px; height: 22px;
-    border-radius: 50%;
-    background: white;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    transition: transform 0.25s;
-  }
-  .toggle-switch input:checked + .toggle-track { background: var(--mint); }
-  .toggle-switch input:checked + .toggle-track::after { transform: translateX(24px); }
-
-  /* ── DETAIL MODAL ── */
-  .modal-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(30,45,38,0.5);
-    backdrop-filter: blur(4px);
-    display: none;
-    align-items: flex-end;
-    z-index: 50;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal-sheet {
-    background: white;
-    width: 100%;
-    border-radius: 24px 24px 0 0;
-    padding: 0 0 calc(24px + env(safe-area-inset-bottom));
-    max-height: 90vh;
-    overflow-y: auto;
-    animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
-  }
-  @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to   { transform: translateY(0); }
-  }
-  .modal-handle {
-    width: 40px; height: 4px;
-    background: #d0ddd8;
-    border-radius: 2px;
-    margin: 12px auto 0;
-  }
-  .modal-header {
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid #eef4f1;
-  }
-  .modal-header h2 { font-family: 'Fraunces', serif; font-size: 18px; }
-  .modal-close {
-    background: var(--sand);
-    border: none;
-    border-radius: 50%;
-    width: 32px; height: 32px;
-    font-size: 16px;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--mid);
-  }
-  .modal-body { padding: 16px 20px; }
-  .detail-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid #f0f5f2;
-    font-size: 14px;
-  }
-  .detail-row:last-child { border-bottom: none; }
-  .detail-row .lbl { color: var(--muted); font-weight: 600; }
-  .detail-row .val { font-weight: 700; color: var(--dark); text-align: right; max-width: 60%; }
-  .detail-photos { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 12px; }
-  .detail-photos img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; }
-
-  /* ── SETTINGS / EXPORT ── */
-  .export-btn {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    background: white;
-    border: none;
-    border-radius: var(--radius);
-    padding: 18px;
-    margin: 10px 16px;
-    box-shadow: var(--shadow);
-    cursor: pointer;
-    width: calc(100% - 32px);
-    font-family: 'Nunito', sans-serif;
-    transition: transform 0.15s;
-  }
-  .export-btn:active { transform: scale(0.97); }
-  .export-btn .ico { font-size: 28px; width: 48px; height: 48px; background: var(--mint-lt); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .export-btn .txt strong { display: block; font-size: 15px; font-weight: 800; color: var(--dark); }
-  .export-btn .txt span { font-size: 12px; color: var(--muted); }
-
-  .install-banner {
-    margin: 10px 16px;
-    background: linear-gradient(135deg, #E1F5EE, #d4f0e5);
-    border-radius: var(--radius);
-    padding: 16px 18px;
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-  }
-  .install-banner .ico { font-size: 28px; }
-  .install-banner strong { display: block; font-size: 14px; font-weight: 800; color: var(--dark); margin-bottom: 4px; }
-  .install-banner p { font-size: 12px; color: var(--mid); line-height: 1.5; }
-
-  /* ── EMPTY STATE ── */
-  .empty-state {
-    text-align: center;
-    padding: 50px 30px;
-    color: var(--muted);
-  }
-  .empty-state .icon { font-size: 56px; margin-bottom: 16px; }
-  .empty-state h3 { font-family: 'Fraunces', serif; font-size: 20px; color: var(--mid); margin-bottom: 8px; }
-  .empty-state p { font-size: 14px; line-height: 1.6; }
-
-  /* ── TOAST ── */
-  .toast {
-    position: absolute;
-    bottom: 90px;
-    left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: var(--dark);
-    color: white;
-    padding: 12px 22px;
-    border-radius: 50px;
-    font-size: 14px;
-    font-weight: 700;
-    opacity: 0;
-    transition: opacity 0.3s, transform 0.3s;
-    z-index: 100;
-    white-space: nowrap;
-    pointer-events: none;
-  }
-  .toast.show {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-
-  /* Screen header strips */
-  .screen-header {
-    background: linear-gradient(135deg, var(--mint), #0c6b54);
-    color: white;
-    padding: 20px 20px 28px;
-    margin-bottom: -16px;
-  }
-  .screen-header h2 { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; }
-  .screen-header p { font-size: 13px; opacity: 0.8; margin-top: 4px; }
-
-  /* Log form top padding */
-  .log-top-pad { height: 16px; }
-
-  /* Urgency slider colors */
-  #urgencySlider { --color: var(--amber); }
-  #painSlider { --color: var(--rose); }
-  input[type=range]#urgencySlider::-webkit-slider-thumb { background: var(--amber); box-shadow: 0 2px 8px rgba(245,166,35,0.4); }
-  input[type=range]#painSlider::-webkit-slider-thumb { background: var(--rose); box-shadow: 0 2px 8px rgba(232,112,106,0.4); }
-
-  .label-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-  }
-  .label-row label { font-weight: 700; font-size: 14px; color: var(--dark); }
-
-  /* Colour swatches */
-  .colour-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-  .colour-swatch {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    cursor: pointer;
-    padding: 8px 4px;
-    border-radius: var(--radius-sm);
-    border: 2px solid transparent;
-    transition: all 0.18s;
-    background: var(--sand);
-  }
-  .colour-swatch.selected { border-color: var(--mint); background: var(--mint-lt); }
-  .colour-swatch .dot {
-    width: 30px; height: 30px;
-    border-radius: 50%;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  }
-  .colour-swatch span { font-size: 10px; font-weight: 700; color: var(--mid); text-align: center; line-height: 1.2; }
-
-  /* ── HELP SCREEN ── */
-  .help-hero {
-    background: linear-gradient(135deg, var(--mint), #0c6b54);
-    color: white;
-    padding: 24px 20px 40px;
-    margin-bottom: -20px;
-    text-align: center;
-  }
-  .help-hero .hero-icon { font-size: 52px; margin-bottom: 10px; }
-  .help-hero h2 { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 700; margin-bottom: 6px; }
-  .help-hero p { font-size: 13px; opacity: 0.85; line-height: 1.6; max-width: 300px; margin: 0 auto; }
-
-  .help-section {
-    background: white;
-    margin: 10px 16px;
-    border-radius: var(--radius);
-    overflow: hidden;
-    box-shadow: var(--shadow);
-  }
-  .help-section-header {
-    background: var(--mint-lt);
-    padding: 14px 18px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    user-select: none;
-    border-bottom: 1px solid transparent;
-    transition: background 0.2s;
-  }
-  .help-section-header:active { background: var(--mint-mid); }
-  .help-section-header .h-icon { font-size: 22px; }
-  .help-section-header h3 { font-size: 15px; font-weight: 800; color: var(--dark); flex: 1; }
-  .help-section-header .chevron {
-    font-size: 12px;
-    color: var(--muted);
-    transition: transform 0.25s;
-    font-style: normal;
-  }
-  .help-section-header.open .chevron { transform: rotate(180deg); }
-  .help-section-body {
-    display: none;
-    padding: 16px 18px;
-    border-top: 1px solid #eef4f1;
-  }
-  .help-section-body.open { display: block; }
-
-  .help-step {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 14px;
-    align-items: flex-start;
-  }
-  .help-step:last-child { margin-bottom: 0; }
-  .help-step .step-num {
-    width: 26px; height: 26px;
-    background: var(--mint);
-    color: white;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px;
-    font-weight: 800;
-    flex-shrink: 0;
-    margin-top: 1px;
-  }
-  .help-step p { font-size: 13px; color: var(--mid); line-height: 1.6; }
-  .help-step p strong { color: var(--dark); }
-
-  .help-bristol-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 0;
-    border-bottom: 1px solid #f0f5f2;
-    font-size: 13px;
-  }
-  .help-bristol-row:last-child { border-bottom: none; }
-  .help-bristol-row .hb-num {
-    width: 26px; height: 26px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 12px; color: white;
-    flex-shrink: 0;
-  }
-  .hb-1,.hb-2 { background: var(--rose); }
-  .hb-3,.hb-4 { background: var(--mint); }
-  .hb-5,.hb-6 { background: var(--amber); }
-  .hb-7 { background: #c0392b; }
-  .help-bristol-row .hb-icon { font-size: 18px; flex-shrink: 0; }
-  .help-bristol-row .hb-text strong { display: block; font-weight: 700; color: var(--dark); }
-  .help-bristol-row .hb-text span { color: var(--muted); font-size: 12px; }
-  .hb-tag {
-    margin-left: auto;
-    font-size: 10px;
-    font-weight: 800;
-    padding: 3px 8px;
-    border-radius: 20px;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .hb-tag.hard  { background: #ffd6d4; color: var(--rose); }
-  .hb-tag.ideal { background: var(--mint-mid); color: var(--mint); }
-  .hb-tag.loose { background: #fde9c5; color: #b07d1a; }
-  .hb-tag.liquid{ background: #ffd6d4; color: #c0392b; }
-
-  .help-colour-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 7px 0;
-    border-bottom: 1px solid #f0f5f2;
-    font-size: 13px;
-  }
-  .help-colour-row:last-child { border-bottom: none; }
-  .help-colour-row .hdot {
-    width: 20px; height: 20px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-  }
-  .help-colour-row .hc-label { font-weight: 700; color: var(--dark); min-width: 90px; }
-  .help-colour-row .hc-desc { color: var(--muted); font-size: 12px; }
-
-  .help-faq-q {
-    font-weight: 800;
-    font-size: 14px;
-    color: var(--dark);
-    margin-bottom: 5px;
-    display: flex;
-    gap: 8px;
-  }
-  .help-faq-q::before { content: 'Q'; background: var(--mint); color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; margin-top: 1px; }
-  .help-faq-a {
-    font-size: 13px;
-    color: var(--mid);
-    line-height: 1.65;
-    padding-left: 30px;
-    margin-bottom: 16px;
-  }
-  .help-faq-a:last-child { margin-bottom: 0; }
-
-  .contact-card {
-    margin: 10px 16px;
-    background: linear-gradient(135deg, #eaf4fb, #d5ecf7);
-    border-radius: var(--radius);
-    padding: 20px;
-    text-align: center;
-    box-shadow: var(--shadow);
-  }
-  .contact-card .c-icon { font-size: 36px; margin-bottom: 10px; }
-  .contact-card h3 { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 700; color: var(--dark); margin-bottom: 6px; }
-  .contact-card p { font-size: 13px; color: var(--mid); line-height: 1.6; margin-bottom: 14px; }
-  .contact-card a {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--sky);
-    color: white;
-    text-decoration: none;
-    padding: 12px 22px;
-    border-radius: 50px;
-    font-weight: 800;
-    font-size: 14px;
-    box-shadow: 0 4px 14px rgba(91,163,201,0.4);
-    transition: transform 0.15s, box-shadow 0.15s;
-  }
-  .contact-card a:active { transform: scale(0.97); }
-
-  .disclaimer-card {
-    margin: 10px 16px 4px;
-    background: var(--rose-lt);
-    border-radius: var(--radius);
-    padding: 16px 18px;
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-  }
-  .disclaimer-card .di { font-size: 22px; flex-shrink: 0; }
-  .disclaimer-card p { font-size: 12px; color: #7a3d3a; line-height: 1.6; }
-  .disclaimer-card strong { color: var(--rose); }
-
-  /* Insights chips */
-  .insight-row { display: flex; flex-wrap: wrap; gap: 8px; }
-  .insight-chip {
-    background: var(--mint-lt);
-    color: var(--mint);
-    border-radius: 50px;
-    padding: 7px 14px;
-    font-size: 13px;
-    font-weight: 700;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .insight-chip.amber { background: var(--amber-lt); color: #b07d1a; }
-  .insight-chip.rose  { background: var(--rose-lt);  color: var(--rose); }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;font-family:'DM Sans',sans-serif;background:#F7F4F0;}
+  ::-webkit-scrollbar{display:none;}
+  button{cursor:pointer;font-family:inherit;}
+  input[type=range]{-webkit-appearance:none;appearance:none;cursor:pointer;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--thumb,#888);box-shadow:0 2px 8px rgba(0,0,0,.3);}
+  input[type=datetime-local]{font-family:'DM Sans',sans-serif;}
+  textarea{font-family:'DM Sans',sans-serif;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  @keyframes pop{0%{transform:scale(0.92)}60%{transform:scale(1.04)}100%{transform:scale(1)}}
+  .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px);background:rgba(20,16,12,0.94);color:#fff;padding:11px 20px;border-radius:24px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13px;opacity:0;pointer-events:none;transition:all .25s;z-index:200;max-width:88%;text-align:center;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 </style>
 </head>
 <body>
-<div id="app">
-
-  <!-- HEADER -->
-  <div class="app-header">
-    <div>
-      <h1>Passage <span>Your gut health, on record</span></h1>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;">
-      <div class="header-date" id="headerDate"></div>
-      <button class="header-help-btn" onclick="toggleHelpScreen()" title="Help">?</button>
-    </div>
-  </div>
-
-  <!-- SCREEN: DASHBOARD -->
-  <div class="screen active" id="screen-home">
-    <div class="dash-hero">
-      <div class="stat-tile"><div class="val" id="stat-today">0</div><div class="lbl">Today</div></div>
-      <div class="stat-tile sky"><div class="val" id="stat-week">0</div><div class="lbl">This Week</div></div>
-      <div class="stat-tile amber"><div class="val" id="stat-avg-type">–</div><div class="lbl">Avg Type</div></div>
-      <div class="stat-tile rose"><div class="val" id="stat-avg-pain">–</div><div class="lbl">Avg Pain (7d)</div></div>
-    </div>
-
-    <div class="recent-list" id="recentList">
-      <p class="card-title" style="padding:0 4px 8px;font-size:14px;">Recent Entries</p>
-    </div>
-
-    <div id="emptyHome" class="empty-state" style="display:none;">
-      <div class="icon">📋</div>
-      <h3>No entries yet</h3>
-      <p>Tap the <strong>+</strong> button below to record your first entry. Everything stays private on your device.</p>
-    </div>
-  </div>
-
-  <!-- SCREEN: LOG -->
-  <div class="screen log-screen" id="screen-log">
-    <div class="log-top-pad"></div>
-
-    <!-- Bristol Stool Scale -->
-    <div class="form-section">
-      <div class="form-section-title">Bristol Stool Scale — Type *</div>
-      <div class="bristol-grid" id="bristolGrid">
-        <div class="bristol-opt t1" data-val="1">
-          <div class="bristol-num">1</div>
-          <div class="bristol-desc"><strong>Separate Hard Lumps</strong><span>Like nuts, very hard to pass</span></div>
-          <div class="bristol-tag tag-hard">Constipated</div>
-        </div>
-        <div class="bristol-opt t2" data-val="2">
-          <div class="bristol-num">2</div>
-          <div class="bristol-desc"><strong>Lumpy & Sausage-like</strong><span>Hard, can be painful</span></div>
-          <div class="bristol-tag tag-hard">Hard</div>
-        </div>
-        <div class="bristol-opt t3" data-val="3">
-          <div class="bristol-num">3</div>
-          <div class="bristol-desc"><strong>Sausage with Cracks</strong><span>Normal, slightly dry</span></div>
-          <div class="bristol-tag tag-ideal">Normal</div>
-        </div>
-        <div class="bristol-opt t4" data-val="4">
-          <div class="bristol-num">4</div>
-          <div class="bristol-desc"><strong>Smooth & Soft Sausage</strong><span>Ideal — easy to pass</span></div>
-          <div class="bristol-tag tag-ideal">Ideal ✓</div>
-        </div>
-        <div class="bristol-opt t5" data-val="5">
-          <div class="bristol-num">5</div>
-          <div class="bristol-desc"><strong>Soft Blobs, Clear Edges</strong><span>Lacking fibre</span></div>
-          <div class="bristol-tag tag-loose">Soft</div>
-        </div>
-        <div class="bristol-opt t6" data-val="6">
-          <div class="bristol-num">6</div>
-          <div class="bristol-desc"><strong>Fluffy, Mushy Pieces</strong><span>Mild diarrhoea</span></div>
-          <div class="bristol-tag tag-loose">Loose</div>
-        </div>
-        <div class="bristol-opt t7" data-val="7">
-          <div class="bristol-num">7</div>
-          <div class="bristol-desc"><strong>Entirely Liquid</strong><span>Severe diarrhoea — no solids</span></div>
-          <div class="bristol-tag tag-liquid">Liquid</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Colour -->
-    <div class="form-section">
-      <div class="form-section-title">Colour</div>
-      <div class="colour-grid" id="colourGrid">
-        <div class="colour-swatch" data-val="Brown"><div class="dot" style="background:#8B5E3C;"></div><span>Brown</span></div>
-        <div class="colour-swatch" data-val="Dark Brown"><div class="dot" style="background:#4a2e1a;"></div><span>Dark Brown</span></div>
-        <div class="colour-swatch" data-val="Light Brown"><div class="dot" style="background:#c4915a;"></div><span>Light Brown</span></div>
-        <div class="colour-swatch" data-val="Yellow"><div class="dot" style="background:#e6c84a;"></div><span>Yellow</span></div>
-        <div class="colour-swatch" data-val="Green"><div class="dot" style="background:#5a9e4a;"></div><span>Green</span></div>
-        <div class="colour-swatch" data-val="Black"><div class="dot" style="background:#1a1a1a;"></div><span>Black</span></div>
-        <div class="colour-swatch" data-val="Red/Blood"><div class="dot" style="background:#c0392b;"></div><span>Red / Blood</span></div>
-        <div class="colour-swatch" data-val="Pale/Grey"><div class="dot" style="background:#c8c0b8;"></div><span>Pale / Grey</span></div>
-      </div>
-    </div>
-
-    <!-- Urgency -->
-    <div class="form-section">
-      <div class="label-row"><label>Urgency</label><span id="urgencyLabel" style="font-weight:800;color:var(--amber);font-size:15px;">5 – Moderate</span></div>
-      <div class="slider-row">
-        <span style="font-size:14px;">😌</span>
-        <input type="range" id="urgencySlider" min="1" max="10" value="5" oninput="updateSlider(this,'urgency')">
-        <span style="font-size:14px;">🚨</span>
-      </div>
-      <div class="slider-labels"><span>No urgency</span><span>Couldn't wait</span></div>
-    </div>
-
-    <!-- Pain -->
-    <div class="form-section">
-      <div class="label-row"><label>Pain / Discomfort</label><span id="painLabel" style="font-weight:800;color:var(--rose);font-size:15px;">0 – None</span></div>
-      <div class="slider-row">
-        <span style="font-size:14px;">🙂</span>
-        <input type="range" id="painSlider" min="0" max="10" value="0" oninput="updateSlider(this,'pain')">
-        <span style="font-size:14px;">😖</span>
-      </div>
-      <div class="slider-labels"><span>No pain</span><span>Severe pain</span></div>
-    </div>
-
-    <!-- Additional symptoms -->
-    <div class="form-section">
-      <div class="form-section-title">Additional Symptoms</div>
-      <div class="pill-group" id="symptomGroup">
-        <div class="pill" data-val="Blood">🩸 Blood</div>
-        <div class="pill" data-val="Mucus">💧 Mucus</div>
-        <div class="pill" data-val="Gas/Flatulence">💨 Gas</div>
-        <div class="pill" data-val="Bloating">🫃 Bloating</div>
-        <div class="pill" data-val="Cramping">⚡ Cramping</div>
-        <div class="pill" data-val="Incomplete Emptying">🔄 Incomplete</div>
-        <div class="pill" data-val="Straining">💪 Straining</div>
-        <div class="pill" data-val="Nausea">🤢 Nausea</div>
-      </div>
-    </div>
-
-    <!-- Ease of passing -->
-    <div class="form-section">
-      <div class="form-section-title">Ease of Passing</div>
-      <div class="pill-group" id="easeGroup">
-        <div class="pill" data-val="Very Easy">😊 Very Easy</div>
-        <div class="pill" data-val="Easy">🙂 Easy</div>
-        <div class="pill" data-val="Normal">😐 Normal</div>
-        <div class="pill" data-val="Difficult">😣 Difficult</div>
-        <div class="pill" data-val="Very Difficult">😖 Very Difficult</div>
-      </div>
-    </div>
-
-    <!-- Date/Time -->
-    <div class="form-section">
-      <div class="form-section-title">Date & Time</div>
-      <div class="label-row" style="margin-bottom:0;">
-        <label style="font-size:13px;font-weight:700;color:var(--mid);">Recorded at</label>
-      </div>
-      <input type="datetime-local" id="entryDatetime"
-        style="width:100%;border:2px solid #e0ece6;border-radius:var(--radius-sm);padding:12px;font-family:'Nunito',sans-serif;font-size:14px;color:var(--dark);background:var(--sand);outline:none;margin-top:8px;">
-    </div>
-
-    <!-- Notes -->
-    <div class="form-section">
-      <div class="form-section-title">Notes (optional)</div>
-      <textarea id="entryNotes" rows="3" placeholder="Any other observations — diet, stress, medication…"></textarea>
-    </div>
-
-    <!-- Photos -->
-    <div class="form-section">
-      <div class="form-section-title">Photos (optional, stored on device only)</div>
-      <div class="photo-area" id="photoArea">
-        <input type="file" accept="image/*" multiple capture="environment" id="photoInput" onchange="handlePhotos(event)">
-        <div style="font-size:32px;margin-bottom:8px;">📷</div>
-        <div style="font-weight:700;color:var(--mint);font-size:14px;">Tap to add photos</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:4px;">Private — never uploaded</div>
-      </div>
-      <div class="photo-preview" id="photoPreview"></div>
-    </div>
-
-    <button class="submit-btn" onclick="saveEntry()">✅ Save Entry</button>
-    <div style="height:16px;"></div>
-  </div>
-
-  <!-- SCREEN: STATS -->
-  <div class="screen" id="screen-stats">
-    <div class="screen-header">
-      <h2>📊 Stats & Trends</h2>
-      <p>Insights from your logged entries</p>
-    </div>
-
-    <div class="card" style="margin-top:28px;" id="insightCard">
-      <div class="card-title">💡 Quick Insights</div>
-      <div class="insight-row" id="insightRow"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">📅 Daily Movements (14 days)</div>
-      <div class="chart-wrap"><canvas id="chartDaily"></canvas></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">🌊 Bristol Type Distribution</div>
-      <div class="chart-wrap"><canvas id="chartType"></canvas></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">⚡ Pain & Urgency Trends</div>
-      <div class="chart-wrap"><canvas id="chartPain"></canvas></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">🎨 Colour Frequency</div>
-      <div class="chart-wrap"><canvas id="chartColour"></canvas></div>
-    </div>
-
-    <div style="height:20px;"></div>
-  </div>
-
-  <!-- SCREEN: HISTORY -->
-  <div class="screen" id="screen-history">
-    <div class="screen-header">
-      <h2>📋 Full History</h2>
-      <p>All your logged entries</p>
-    </div>
-    <div style="height:16px;"></div>
-    <div class="filter-bar" id="filterBar">
-      <div class="filter-chip active" data-filter="all">All Types</div>
-      <div class="filter-chip" data-filter="1" data-tip="Type 1 — Separate Hard Lumps&#10;Like small stones, very hard to pass. Indicates constipation.">Type 1</div>
-      <div class="filter-chip" data-filter="2" data-tip="Type 2 — Lumpy Sausage&#10;Sausage-shaped but lumpy and hard. Still constipated.">Type 2</div>
-      <div class="filter-chip" data-filter="3" data-tip="Type 3 — Cracked Sausage&#10;Like a sausage with surface cracks. Normal, slightly dry.">Type 3</div>
-      <div class="filter-chip" data-filter="4" data-tip="Type 4 — Smooth Sausage&#10;Smooth and soft. The ideal type — easy to pass.">Type 4</div>
-      <div class="filter-chip" data-filter="5" data-tip="Type 5 — Soft Blobs&#10;Soft blobs with clear edges. Lacking fibre.">Type 5</div>
-      <div class="filter-chip" data-filter="6" data-tip="Type 6 — Fluffy &amp; Mushy&#10;Ragged, mushy pieces. Mild diarrhoea.">Type 6</div>
-      <div class="filter-chip" data-filter="7" data-tip="Type 7 — Entirely Liquid&#10;No solid pieces at all. Severe diarrhoea.">Type 7</div>
-    </div>
-    <div class="filter-tooltip" id="filterTooltip"></div>
-    <div id="historyList" style="padding:0 16px;"></div>
-    <div id="emptyHistory" class="empty-state" style="display:none;">
-      <div class="icon">📋</div>
-      <h3>No entries found</h3>
-      <p>Try a different filter, or log your first entry.</p>
-    </div>
-  </div>
-
-  <!-- SCREEN: EXPORT / SETTINGS -->
-  <div class="screen" id="screen-settings">
-    <div class="screen-header">
-      <h2>⚙️ Export & Settings</h2>
-      <p>Share data with your healthcare team</p>
-    </div>
-    <div style="height:28px;"></div>
-
-    <!-- Dark mode toggle -->
-    <div class="dm-toggle-row">
-      <div class="dm-label">
-        <div class="dm-ico">🌙</div>
-        <div class="dm-txt"><strong>Dark Mode</strong><span>Easier on the eyes at night</span></div>
-      </div>
-      <label class="toggle-switch">
-        <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode(this.checked)">
-        <span class="toggle-track"></span>
-      </label>
-    </div>
-
-
-    <button class="export-btn" onclick="exportCSV()">
-      <div class="ico">📊</div>
-      <div class="txt"><strong>Export as CSV</strong><span>For your doctor or dietitian</span></div>
-      <span style="margin-left:auto;font-size:20px;color:var(--muted);">→</span>
-    </button>
-
-    <button class="export-btn" onclick="exportJSON()">
-      <div class="ico" style="background:var(--sky-lt);">💾</div>
-      <div class="txt"><strong>Backup Data (JSON)</strong><span>Save a full backup of all entries</span></div>
-      <span style="margin-left:auto;font-size:20px;color:var(--muted);">→</span>
-    </button>
-
-    <button class="export-btn" onclick="document.getElementById('importFile').click()">
-      <div class="ico" style="background:var(--amber-lt);">📂</div>
-      <div class="txt"><strong>Restore Backup</strong><span>Import a previously saved JSON backup</span></div>
-      <span style="margin-left:auto;font-size:20px;color:var(--muted);">→</span>
-    </button>
-    <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importJSON(event)">
-
-    <button class="export-btn" onclick="clearAllData()" style="margin-top:4px;">
-      <div class="ico" style="background:var(--rose-lt);">🗑️</div>
-      <div class="txt"><strong>Clear All Data</strong><span>Permanently delete all entries</span></div>
-      <span style="margin-left:auto;font-size:20px;color:var(--muted);">→</span>
-    </button>
-
-    <div class="card" style="margin-top:8px;">
-      <div class="card-title" style="margin-bottom:10px;">ℹ️ About Passage</div>
-      <p style="font-size:13px;color:var(--muted);line-height:1.7;">Passage uses the clinically validated <strong>Bristol Stool Form Scale</strong> to help you track bowel health accurately. All data is stored locally on your device — nothing is ever transmitted externally. Export your CSV and share it directly with your gastroenterologist, GP or dietitian.</p>
-      <p style="font-size:12px;color:var(--muted);margin-top:10px;">⚕️ This app is a tracking tool only and does not provide medical advice. Always consult your healthcare provider about symptoms.</p>
-    </div>
-
-    <div style="height:20px;"></div>
-  </div>
-
-  <!-- SCREEN: HELP -->
-  <div class="screen" id="screen-help">
-
-    <div class="help-hero">
-      <div class="hero-icon">📋</div>
-      <h2>How to use Passage</h2>
-      <p>Everything you need to know about logging your gut health and sharing data with your doctor.</p>
-    </div>
-
-    <!-- Getting Started -->
-    <div class="help-section" style="margin-top:30px;">
-      <div class="help-section-header open" onclick="toggleHelp(this)">
-        <span class="h-icon">🚀</span>
-        <h3>Getting Started</h3>
-        <i class="chevron">▼</i>
-      </div>
-      <div class="help-section-body open">
-        <div class="help-step">
-          <div class="step-num">1</div>
-          <p>Tap the <strong>green ➕ button</strong> at the bottom centre of the screen to open the logging form.</p>
-        </div>
-        <div class="help-step">
-          <div class="step-num">2</div>
-          <p>Choose your <strong>Bristol Stool Type</strong> (1–7). This is the only required field — everything else is optional but helpful.</p>
-        </div>
-        <div class="help-step">
-          <div class="step-num">3</div>
-          <p>Fill in as many details as you like — colour, urgency, pain, symptoms, and notes. The more you log, the more useful your data is for your doctor.</p>
-        </div>
-        <div class="help-step">
-          <div class="step-num">4</div>
-          <p>Tap <strong>Save Entry</strong>. Your entry is stored privately on your phone — nothing is sent anywhere.</p>
-        </div>
-        <div class="help-step">
-          <div class="step-num">5</div>
-          <p>Before a doctor's appointment, go to <strong>Export &amp; Settings</strong> (⚙️) and tap <strong>Export as CSV</strong> to create a file you can share.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Bristol Stool Scale -->
-    <div class="help-section">
-      <div class="help-section-header" onclick="toggleHelp(this)">
-        <span class="h-icon">📊</span>
-        <h3>The Bristol Stool Scale</h3>
-        <i class="chevron">▼</i>
-      </div>
-      <div class="help-section-body">
-        <p style="font-size:13px;color:var(--mid);line-height:1.6;margin-bottom:14px;">The <strong>Bristol Stool Form Scale</strong> is a medical diagnostic tool developed at the University of Bristol in 1997. It classifies stool into 7 types and is widely used by gastroenterologists and GPs to assess bowel health.</p>
-        <div class="help-bristol-row">
-          <div class="hb-num hb-1">1</div>
-          <div class="hb-text"><strong>Separate Hard Lumps</strong><span>Like small stones — very hard to pass</span></div>
-          <span class="hb-tag hard">Constipated</span>
-        </div>
-        <div class="help-bristol-row">
-          <div class="hb-num hb-2">2</div>
-          <div class="hb-text"><strong>Lumpy Sausage</strong><span>Sausage-shaped but lumpy, hard</span></div>
-          <span class="hb-tag hard">Hard</span>
-        </div>
-        <div class="help-bristol-row">
-          <div class="hb-num hb-3">3</div>
-          <div class="hb-text"><strong>Sausage with Cracks</strong><span>Like a sausage with surface cracks</span></div>
-          <span class="hb-tag ideal">Normal</span>
-        </div>
-        <div class="help-bristol-row">
-          <div class="hb-num hb-4">4</div>
-          <div class="hb-text"><strong>Smooth Soft Sausage</strong><span>Smooth, soft — the ideal type</span></div>
-          <span class="hb-tag ideal">Ideal ✓</span>
-        </div>
-        <div class="help-bristol-row">
-          <div class="hb-num hb-5">5</div>
-          <div class="hb-text"><strong>Soft Blobs</strong><span>Soft blobs with clear-cut edges</span></div>
-          <span class="hb-tag loose">Soft</span>
-        </div>
-        <div class="help-bristol-row">
-          <div class="hb-num hb-6">6</div>
-          <div class="hb-text"><strong>Fluffy / Mushy</strong><span>Ragged edges, mushy consistency</span></div>
-          <span class="hb-tag loose">Loose</span>
-        </div>
-        <div class="help-bristol-row">
-          <div class="hb-num hb-7">7</div>
-          <div class="hb-text"><strong>Entirely Liquid</strong><span>No solid pieces — watery</span></div>
-          <span class="hb-tag liquid">Liquid</span>
-        </div>
-        <p style="font-size:12px;color:var(--muted);margin-top:14px;line-height:1.6;">Types 1–2 suggest constipation. Types 3–4 are considered healthy. Types 5–7 suggest increasing diarrhoea. Persistent extremes should always be discussed with your doctor.</p>
-      </div>
-    </div>
-
-    <!-- Colour Guide -->
-    <div class="help-section">
-      <div class="help-section-header" onclick="toggleHelp(this)">
-        <span class="h-icon">🎨</span>
-        <h3>What Do the Colours Mean?</h3>
-        <i class="chevron">▼</i>
-      </div>
-      <div class="help-section-body">
-        <div class="help-colour-row"><div class="hdot" style="background:#8B5E3C;"></div><span class="hc-label">Brown</span><span class="hc-desc">Healthy — the normal colour</span></div>
-        <div class="help-colour-row"><div class="hdot" style="background:#4a2e1a;"></div><span class="hc-label">Dark Brown</span><span class="hc-desc">Normal, often after high-protein meals</span></div>
-        <div class="help-colour-row"><div class="hdot" style="background:#c4915a;"></div><span class="hc-label">Light Brown</span><span class="hc-desc">Normal variation, may indicate less bile</span></div>
-        <div class="help-colour-row"><div class="hdot" style="background:#e6c84a;"></div><span class="hc-label">Yellow</span><span class="hc-desc">Can indicate excess fat — worth monitoring</span></div>
-        <div class="help-colour-row"><div class="hdot" style="background:#5a9e4a;"></div><span class="hc-label">Green</span><span class="hc-desc">Often from leafy vegetables or fast transit</span></div>
-        <div class="help-colour-row"><div class="hdot" style="background:#1a1a1a;"></div><span class="hc-label">Black</span><span class="hc-desc" style="color:var(--rose);font-weight:700;">⚠️ May indicate upper GI bleeding — seek advice</span></div>
-        <div class="help-colour-row"><div class="hdot" style="background:#c0392b;"></div><span class="hc-label">Red / Blood</span><span class="hc-desc" style="color:var(--rose);font-weight:700;">⚠️ Visible blood — always discuss with your doctor</span></div>
-        <div class="help-colour-row"><div class="hdot" style="background:#c8c0b8;"></div><span class="hc-label">Pale / Grey</span><span class="hc-desc" style="color:var(--rose);font-weight:700;">⚠️ May indicate a bile or liver issue — seek advice</span></div>
-      </div>
-    </div>
-
-    <!-- Other Fields -->
-    <div class="help-section">
-      <div class="help-section-header" onclick="toggleHelp(this)">
-        <span class="h-icon">📝</span>
-        <h3>Understanding the Other Fields</h3>
-        <i class="chevron">▼</i>
-      </div>
-      <div class="help-section-body">
-        <p style="font-size:13px;font-weight:800;color:var(--dark);margin-bottom:6px;">🚨 Urgency (1–10)</p>
-        <p style="font-size:13px;color:var(--mid);line-height:1.6;margin-bottom:14px;">How urgently did you need to go? 1 = no rush at all, 10 = you couldn't wait another second. High urgency is a common and significant symptom in IBD and IBS.</p>
-
-        <p style="font-size:13px;font-weight:800;color:var(--dark);margin-bottom:6px;">⚡ Pain / Discomfort (0–10)</p>
-        <p style="font-size:13px;color:var(--mid);line-height:1.6;margin-bottom:14px;">Rate any pain during or after the movement. 0 = completely painless, 10 = severe pain. This helps your doctor see patterns of pain over time.</p>
-
-        <p style="font-size:13px;font-weight:800;color:var(--dark);margin-bottom:6px;">😖 Ease of Passing</p>
-        <p style="font-size:13px;color:var(--mid);line-height:1.6;margin-bottom:14px;">How easy was it? This combines Bristol type with effort required. Straining even for soft stools can be a useful symptom for your doctor to know about.</p>
-
-        <p style="font-size:13px;font-weight:800;color:var(--dark);margin-bottom:6px;">🩸 Symptoms</p>
-        <p style="font-size:13px;color:var(--mid);line-height:1.6;margin-bottom:14px;">Tap any that apply. <strong>Blood</strong> or <strong>Mucus</strong> are particularly important to log — your doctor will want to know the frequency of these. <strong>Incomplete Emptying</strong> (tenesmus) is a common IBD symptom.</p>
-
-        <p style="font-size:13px;font-weight:800;color:var(--dark);margin-bottom:6px;">📷 Photos</p>
-        <p style="font-size:13px;color:var(--mid);line-height:1.6;margin-bottom:0;">Completely optional. Photos are stored only on your device and are never uploaded. They can help your doctor assess consistency or colour more accurately. Photos are <em>not</em> included in CSV exports.</p>
-      </div>
-    </div>
-
-    <!-- Navigating the App -->
-    <div class="help-section">
-      <div class="help-section-header" onclick="toggleHelp(this)">
-        <span class="h-icon">🗺️</span>
-        <h3>Navigating the App</h3>
-        <i class="chevron">▼</i>
-      </div>
-      <div class="help-section-body">
-        <div class="help-step">
-          <div class="step-num" style="background:var(--mint);">🏠</div>
-          <p><strong>Home</strong> — Your dashboard. Shows today's count, weekly total, average Bristol type, and your recent entries. Tap any entry to see its full details.</p>
-        </div>
-        <div class="help-step">
-          <div class="step-num" style="background:var(--mint);">📋</div>
-          <p><strong>History</strong> — Browse all your entries. Use the filter bar at the top to show only specific Bristol types. Tap the 🗑 icon to delete an individual entry.</p>
-        </div>
-        <div class="help-step">
-          <div class="step-num" style="background:var(--mint);">➕</div>
-          <p><strong>Log</strong> — The main logging form. Bristol type is required; everything else is optional. The date/time defaults to now but you can change it to backfill an entry.</p>
-        </div>
-        <div class="help-step">
-          <div class="step-num" style="background:var(--mint);">📊</div>
-          <p><strong>Stats</strong> — Charts and trends including daily frequency, Bristol type distribution, pain &amp; urgency over time, and colour breakdown. Quick insights highlight anything notable.</p>
-        </div>
-        <div class="help-step">
-          <div class="step-num" style="background:var(--mint);">⚙️</div>
-          <p><strong>Export &amp; Settings</strong> — Share a CSV with your doctor, back up all data as JSON, restore from a backup, or clear all data.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Your Data & Privacy -->
-    <div class="help-section">
-      <div class="help-section-header" onclick="toggleHelp(this)">
-        <span class="h-icon">🔒</span>
-        <h3>Your Data &amp; Privacy</h3>
-        <i class="chevron">▼</i>
-      </div>
-      <div class="help-section-body">
-        <div class="help-step">
-          <div class="step-num">🛡</div>
-          <p><strong>All data is stored only on your device.</strong> Nothing is sent to any server, cloud, or third party — ever.</p>
-        </div>
-        <div class="help-step">
-          <div class="step-num">💾</div>
-          <p>Use <strong>Backup Data (JSON)</strong> regularly to save a copy of all your entries. If you switch devices, or uninstall and reinstall the app, you can restore from this backup.</p>
-        </div>
-        <div class="help-step">
-          <div class="step-num">📊</div>
-          <p>The <strong>CSV export</strong> contains all your text entries in a format your doctor can open in Excel or any spreadsheet tool. Photos are stored separately and are not included in the CSV.</p>
-        </div>
-        <div class="help-step">
-          <div class="step-num">🗑</div>
-          <p>Your data stays until you delete it. Uninstalling the app or using <strong>Clear All Data</strong> will permanently remove your entries, so keep a JSON backup if you want to be safe.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- FAQ -->
-    <div class="help-section">
-      <div class="help-section-header" onclick="toggleHelp(this)">
-        <span class="h-icon">❓</span>
-        <h3>Frequently Asked Questions</h3>
-        <i class="chevron">▼</i>
-      </div>
-      <div class="help-section-body">
-        <div class="help-faq-q">Will my data be lost if I uninstall the app?</div>
-        <div class="help-faq-a">Yes — uninstalling the app (or using Clear All Data) deletes your entries. <strong>Always use the JSON backup feature</strong> (Export &amp; Settings → Backup Data) to keep a safe copy. Restore it any time using Restore Backup.</div>
-
-        <div class="help-faq-q">Can I use this on multiple devices?</div>
-        <div class="help-faq-a">Not automatically — data lives on each device separately. You can transfer by exporting a JSON backup on one device and importing it on another. Start with the device you use most often.</div>
-
-        <div class="help-faq-q">How do I share data with my doctor?</div>
-        <div class="help-faq-a">Go to <strong>Export &amp; Settings → Export as CSV</strong>. This creates a spreadsheet file you can share straight to email, save to your files, or print and bring to an appointment.</div>
-
-        <div class="help-faq-q">What if my storage is running low?</div>
-        <div class="help-faq-a">Photos use the most storage. If you notice issues, try limiting photos or removing older ones by editing entries. A JSON backup takes very little space compared to photos.</div>
-
-        <div class="help-faq-q">Does this replace medical advice?</div>
-        <div class="help-faq-a">No. Passage is a tracking tool to help you log symptoms and share data with your healthcare team. It does not diagnose conditions or replace professional medical advice. Always contact your doctor about concerning symptoms.</div>
-
-        <div class="help-faq-q">I found a bug or have a suggestion</div>
-        <div class="help-faq-a">Please use the contact button below to email the developer. Include your device type and browser, and describe what happened. Bug reports are genuinely appreciated!</div>
-      </div>
-    </div>
-
-    <!-- Contact -->
-    <div class="contact-card">
-      <div class="c-icon">✉️</div>
-      <h3>Questions or Bug Reports?</h3>
-      <p>Found something that isn't working, or have an idea for a new feature? Drop an email — all feedback is welcome and read personally.</p>
-      <a href="mailto:dev@walker-jones.eu?subject=Passage%20Feedback">✉️ dev@walker-jones.eu</a>
-    </div>
-
-    <!-- Disclaimer -->
-    <div class="disclaimer-card">
-      <span class="di">⚕️</span>
-      <p><strong>Medical Disclaimer:</strong> Passage is a personal symptom-tracking tool only. It does not provide medical advice, diagnosis, or treatment recommendations. Always consult a qualified healthcare professional — especially if you notice blood, black stools, sudden changes, or severe pain.</p>
-    </div>
-
-    <div style="height:24px;"></div>
-  </div>
-
-  <!-- BOTTOM NAV -->
-  <nav class="bottom-nav">
-    <button class="nav-btn active" onclick="showScreen('home',this)">
-      <span class="icon">🏠</span>Home
-    </button>
-    <button class="nav-btn" onclick="showScreen('history',this)">
-      <span class="icon">📋</span>History
-    </button>
-    <button class="nav-btn log-btn" onclick="showScreen('log',this)">
-      <div class="icon-wrap"><span style="font-size:26px;">➕</span></div>
-      <span>Log</span>
-    </button>
-    <button class="nav-btn" onclick="showScreen('stats',this)">
-      <span class="icon">📊</span>Stats
-    </button>
-    <button class="nav-btn" onclick="showScreen('settings',this)">
-      <span class="icon">⚙️</span>Settings
-    </button>
-  </nav>
-
-  <!-- DETAIL MODAL -->
-  <div class="modal-overlay" id="detailModal" onclick="closeModal(event)">
-    <div class="modal-sheet">
-      <div class="modal-handle"></div>
-      <div class="modal-header">
-        <h2 id="modalTitle">Entry Detail</h2>
-        <button class="modal-close" onclick="closeModalDirect()">✕</button>
-      </div>
-      <div class="modal-body" id="modalBody"></div>
-    </div>
-  </div>
-
-  <!-- TOAST -->
-  <div class="toast" id="toast"></div>
-</div>
+<div id="app"></div>
+<input type="file" id="photoInput" accept="image/*" multiple capture="environment" style="display:none">
+<input type="file" id="importFile" accept="application/json,.json" style="display:none">
+<div class="toast" id="toast"></div>
 
 <script>
-// ── DATA ──────────────────────────────────────────────────────────────
-// Entries live in IndexedDB (durable, no ~5MB localStorage cap — important
-// for base64 photos). We keep a synchronous in-memory cache so the rest of
-// the app can stay synchronous; writes are persisted to IndexedDB.
-const STORAGE_KEY = 'gutdiary_v1';   // legacy localStorage key (migrated once)
-const DB_NAME = 'gutdiary';
-const DB_STORE = 'kv';
-const DB_ENTRIES_KEY = 'entries';
+/* ───────────────────────── THEMES ───────────────────────── */
+const THEMES = {
+  terracotta: {
+    bg:'#F7F4F0', surface:'#FFFFFF', fg:'#1C1510', fgMid:'#6A5748', fgLight:'#B8A49A',
+    accent:'#C0634A', accentBg:'#FAEEE9', accentText:'#fff',
+    border:'#EAE0D8', borderLight:'#F4EEE9', inputBg:'#F4EEE9',
+    navBg:'#FFFFFF', danger:'#C0504A', dangerBg:'#FDECEA', scheme:'light',
+  },
+  slate: {
+    bg:'#F1F5FA', surface:'#FFFFFF', fg:'#0D192C', fgMid:'#4E6278', fgLight:'#9AB0C4',
+    accent:'#2060A8', accentBg:'#DAEEFb', accentText:'#fff',
+    border:'#D4E2EF', borderLight:'#E8F1F8', inputBg:'#E8F1F8',
+    navBg:'#FFFFFF', danger:'#C04040', dangerBg:'#FDECEA', scheme:'light',
+  },
+  obsidian: {
+    bg:'#131110', surface:'#1D1916', fg:'#EEE8E2', fgMid:'#7A6860', fgLight:'#3C302A',
+    accent:'#D07040', accentBg:'#2A1C14', accentText:'#fff',
+    border:'#2E2420', borderLight:'#231D19', inputBg:'#231D19',
+    navBg:'#1D1916', danger:'#D05040', dangerBg:'#2E1815', scheme:'dark',
+  },
+};
+const THEME_NAMES = {terracotta:'Terracotta', slate:'Slate', obsidian:'Obsidian'};
 
-let _db = null;
-let _entries = [];
+/* ───────────────────────── DATA ───────────────────────── */
+const BRISTOL = [
+  {n:1,name:'Separate Lumps',  short:'Separate lumps',  desc:'Like small stones — very hard to pass',     tag:'Constipated',color:'#C0564E'},
+  {n:2,name:'Lumpy Sausage',   short:'Lumpy sausage',   desc:'Sausage-shaped but lumpy — hard to pass',   tag:'Hard',       color:'#D07045'},
+  {n:3,name:'Cracked Sausage', short:'Cracked sausage', desc:'Like a sausage with cracks on the surface', tag:'Normal',     color:'#4CAA72'},
+  {n:4,name:'Smooth Sausage',  short:'Smooth sausage',  desc:'Smooth and soft — passes easily',           tag:'Ideal',      color:'#1D9E75'},
+  {n:5,name:'Soft Blobs',      short:'Soft blobs',      desc:'Soft blobs with clear-cut edges',           tag:'Soft',       color:'#B09820'},
+  {n:6,name:'Fluffy Pieces',   short:'Fluffy pieces',   desc:'Ragged, mushy — mild diarrhoea',            tag:'Loose',      color:'#C07828'},
+  {n:7,name:'Entirely Liquid', short:'Liquid',          desc:'No solid pieces at all — severe diarrhoea', tag:'Liquid',     color:'#B83020'},
+];
+
+const COLOURS = [
+  {val:'Light',  hex:'#C4915A', row:1},
+  {val:'Brown',  hex:'#8B5E3C', row:1},
+  {val:'Dark',   hex:'#4A2E1A', row:1},
+  {val:'Yellow', hex:'#E0C040', row:2},
+  {val:'Green',  hex:'#5A9A48', row:2},
+  {val:'Black',  hex:'#1A1A1A', row:2},
+  {val:'Red',    hex:'#C0392B', row:2},
+  {val:'Pale',   hex:'#C0B8AC', row:2},
+];
+
+const SYMPTOMS = ['Blood','Mucus','Gas','Bloating','Cramping','Incomplete','Straining','Nausea'];
+
+const QUOTES = [
+  "The more consistently you track, the clearer the picture for your doctor.",
+  "Small daily observations build the most powerful health insights.",
+  "Your gut has its own rhythm. Tracking helps you understand it.",
+  "Every entry is a step toward better conversations with your healthcare team.",
+  "Good data leads to good care.",
+  "What you notice today may matter months from now.",
+  "Your health story, in your own words — logged.",
+  "Patterns emerge from consistency. Keep going.",
+  "The best thing you can do before an appointment is bring good data.",
+  "Each log is a small act of self-care.",
+  "What gets tracked gets understood.",
+  "You're building a record that can change how you're treated.",
+  "Listen to your body. Passage helps you hear it clearly.",
+  "IBD is complex. Your tracking doesn't have to be.",
+];
+
+/* ───────────────────────── STORAGE (preserved from v1) ───────────────────────── */
+// Entries live in IndexedDB (durable, no ~5MB localStorage cap — important for
+// base64 photos). A synchronous in-memory cache keeps the rest of the app simple.
+const STORAGE_KEY = 'gutdiary_v1';   // legacy localStorage key (migrated once)
+const DB_NAME = 'gutdiary', DB_STORE = 'kv', DB_ENTRIES_KEY = 'entries';
+const PREF_THEME = 'passage_theme', PREF_LOGSTYLE = 'passage_log_style', PREF_PICKER = 'passage_bristol_picker';
+
+let _db = null, _entries = [];
 
 function openDB() {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, 1);
-    req.onupgradeneeded = () => {
-      const db = req.result;
-      if (!db.objectStoreNames.contains(DB_STORE)) db.createObjectStore(DB_STORE);
-    };
+    req.onupgradeneeded = () => { const db = req.result; if (!db.objectStoreNames.contains(DB_STORE)) db.createObjectStore(DB_STORE); };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
 }
-function idbGet(key) {
-  return new Promise((resolve, reject) => {
-    const req = _db.transaction(DB_STORE, 'readonly').objectStore(DB_STORE).get(key);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-}
-function idbSet(key, val) {
-  return new Promise((resolve, reject) => {
-    const tx = _db.transaction(DB_STORE, 'readwrite');
-    tx.objectStore(DB_STORE).put(val, key);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-}
+function idbGet(key){return new Promise((res,rej)=>{const r=_db.transaction(DB_STORE,'readonly').objectStore(DB_STORE).get(key);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+function idbSet(key,val){return new Promise((res,rej)=>{const tx=_db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).put(val,key);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});}
 
-// Hydrate the cache once at startup, migrating any old localStorage data.
 async function initStorage() {
   try {
     _db = await openDB();
@@ -1629,614 +127,994 @@ async function initStorage() {
     if (Array.isArray(stored)) {
       _entries = stored;
     } else {
-      // One-time migration from the old localStorage-based version
       try {
         const legacy = JSON.parse(localStorage.getItem(STORAGE_KEY));
-        if (Array.isArray(legacy) && legacy.length) {
-          _entries = legacy;
-          await idbSet(DB_ENTRIES_KEY, _entries);
-          localStorage.removeItem(STORAGE_KEY); // reclaim the space
-        }
+        if (Array.isArray(legacy) && legacy.length) { _entries = legacy; await idbSet(DB_ENTRIES_KEY,_entries); localStorage.removeItem(STORAGE_KEY); }
       } catch {}
     }
   } catch (e) {
-    // IndexedDB unavailable — degrade gracefully to localStorage
     _db = null;
     try { _entries = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { _entries = []; }
   }
 }
-
-function loadEntries() { return _entries; }
-function saveEntries(arr) {
+function loadEntries(){ return _entries; }
+function saveEntries(arr){
   _entries = arr;
-  if (_db) {
-    idbSet(DB_ENTRIES_KEY, arr).catch(() => {
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); } catch {}
-    });
-  } else {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); } catch {}
-  }
+  if (_db) idbSet(DB_ENTRIES_KEY,arr).catch(()=>{ try{localStorage.setItem(STORAGE_KEY,JSON.stringify(arr));}catch{} });
+  else { try{localStorage.setItem(STORAGE_KEY,JSON.stringify(arr));}catch{} }
 }
 
-const BRISTOL_LABELS = {
-  1:'Separate Hard Lumps', 2:'Lumpy Sausage', 3:'Cracked Sausage',
-  4:'Smooth Sausage', 5:'Soft Blobs', 6:'Fluffy/Mushy', 7:'Entirely Liquid'
+/* ───────────────────────── HELPERS ───────────────────────── */
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const entryTs = e => new Date(e.datetime).getTime();
+
+const timeAgo = ts => {
+  const m=Math.floor((Date.now()-ts)/60000);
+  if(m<1) return 'just now';
+  if(m<60) return `${m}m ago`;
+  const h=Math.floor(m/60);
+  if(h<24) return `${h}h ago`;
+  return `${Math.floor(h/24)}d ago`;
+};
+const nowDT = () => { const d=new Date(),p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; };
+const getDailyQuote = () => { const start=new Date(new Date().getFullYear(),0,1); const day=Math.floor((Date.now()-start)/86400000); return QUOTES[day % QUOTES.length]; };
+
+/* ───────────────────────── ICONS / LOGO ───────────────────────── */
+const icoHome  = (c,s=20)=>`<svg width="${s}" height="${s}" viewBox="0 0 20 20" fill="none"><path d="M3 8.5L10 3l7 5.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V8.5z" stroke="${c}" stroke-width="1.6" stroke-linejoin="round"/><path d="M7.5 18v-5h5v5" stroke="${c}" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+const icoList  = (c,s=20)=>`<svg width="${s}" height="${s}" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="1.6" rx=".8" fill="${c}"/><rect x="3" y="9.2" width="14" height="1.6" rx=".8" fill="${c}"/><rect x="3" y="13.4" width="9" height="1.6" rx=".8" fill="${c}"/></svg>`;
+const icoChart = (c,s=20)=>`<svg width="${s}" height="${s}" viewBox="0 0 20 20" fill="none"><rect x="3" y="12" width="3.5" height="5" rx="1" fill="${c}"/><rect x="8.25" y="7.5" width="3.5" height="9.5" rx="1" fill="${c}"/><rect x="13.5" y="4" width="3.5" height="13" rx="1" fill="${c}"/></svg>`;
+const icoGear  = (c,s=20)=>`<svg width="${s}" height="${s}" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="2.5" stroke="${c}" stroke-width="1.5"/><path d="M10 3v2M10 15v2M3 10h2M15 10h2M4.93 4.93l1.41 1.41M13.66 13.66l1.41 1.41M4.93 15.07l1.41-1.41M13.66 6.34l1.41-1.41" stroke="${c}" stroke-width="1.5" stroke-linecap="round"/></svg>`;
+const icoCam   = (c,s=22)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="${c}" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="13" r="4" stroke="${c}" stroke-width="1.6"/></svg>`;
+const icoPlus  = (c,s=16)=>`<svg width="${s}" height="${s}" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="${c}" stroke-width="2" stroke-linecap="round"/></svg>`;
+const icoCheck = (c,s=18)=>`<svg width="${s}" height="${s}" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4" stroke="${c}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const icoMail  = (c,s=18)=>`<svg width="${s}" height="${s}" viewBox="0 0 20 20" fill="none"><rect x="2.5" y="4" width="15" height="12" rx="2" stroke="${c}" stroke-width="1.6"/><path d="M3 5.5l7 5 7-5" stroke="${c}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const logoMark = (size=28,accent)=>`<svg width="${size}" height="${size}" viewBox="0 0 28 28"><rect width="28" height="28" rx="8" fill="${accent}"/><path d="M6 9.5 C9 7 19 7 22 9.5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M5.5 14 C9 11.5 19 11.5 22.5 14" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M6 18.5 C9 16 19 16 22 18.5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/></svg>`;
+
+const bristolShape = (n,color)=>{
+  const f=color+'28';
+  const shapes=[
+    `<svg width="88" height="40" viewBox="0 0 88 40" fill="none"><circle cx="12" cy="26" r="7" fill="${f}" stroke="${color}" stroke-width="1.4"/><circle cx="28" cy="18" r="9" fill="${f}" stroke="${color}" stroke-width="1.4"/><circle cx="46" cy="27" r="7.5" fill="${f}" stroke="${color}" stroke-width="1.4"/><circle cx="63" cy="17" r="8.5" fill="${f}" stroke="${color}" stroke-width="1.4"/><circle cx="78" cy="27" r="7" fill="${f}" stroke="${color}" stroke-width="1.4"/></svg>`,
+    `<svg width="88" height="40" viewBox="0 0 88 40" fill="none"><rect x="6" y="13" width="76" height="18" rx="9" fill="${f}" stroke="${color}" stroke-width="1.4"/><circle cx="16" cy="13" r="8" fill="${f}" stroke="${color}" stroke-width="1.4"/><circle cx="32" cy="11" r="9" fill="${f}" stroke="${color}" stroke-width="1.4"/><circle cx="52" cy="11" r="8.5" fill="${f}" stroke="${color}" stroke-width="1.4"/><circle cx="70" cy="13" r="8" fill="${f}" stroke="${color}" stroke-width="1.4"/></svg>`,
+    `<svg width="88" height="40" viewBox="0 0 88 40" fill="none"><rect x="6" y="11" width="76" height="20" rx="10" fill="${f}" stroke="${color}" stroke-width="1.4"/><path d="M24 11 L22 21 L24 31M44 11 L42 21 L44 31M63 11 L61 21 L63 31" stroke="${color}" stroke-width="1.2" stroke-linecap="round"/></svg>`,
+    `<svg width="88" height="40" viewBox="0 0 88 40" fill="none"><rect x="6" y="11" width="76" height="20" rx="10" fill="${f}" stroke="${color}" stroke-width="1.4"/></svg>`,
+    `<svg width="88" height="40" viewBox="0 0 88 40" fill="none"><ellipse cx="18" cy="24" rx="13" ry="9" fill="${f}" stroke="${color}" stroke-width="1.4"/><ellipse cx="44" cy="21" rx="15" ry="11" fill="${f}" stroke="${color}" stroke-width="1.4"/><ellipse cx="70" cy="24" rx="13" ry="9" fill="${f}" stroke="${color}" stroke-width="1.4"/></svg>`,
+    `<svg width="88" height="40" viewBox="0 0 88 40" fill="none"><path d="M6 30 Q14 14 24 22 Q34 32 44 18 Q54 8 64 20 Q72 30 82 18" stroke="${color}" stroke-width="1.5" fill="${f}" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="22" cy="25" rx="11" ry="7" fill="${f}" stroke="${color}" stroke-width="1.2"/><ellipse cx="46" cy="20" rx="13" ry="8" fill="${f}" stroke="${color}" stroke-width="1.2"/><ellipse cx="68" cy="23" rx="11" ry="7" fill="${f}" stroke="${color}" stroke-width="1.2"/></svg>`,
+    `<svg width="88" height="40" viewBox="0 0 88 40" fill="none"><path d="M4 14 Q14 7 24 14 Q34 21 44 14 Q54 7 64 14 Q74 21 84 14" stroke="${color}" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M4 26 Q14 19 24 26 Q34 33 44 26 Q54 19 64 26 Q74 33 84 26" stroke="${color}" stroke-width="2.2" fill="none" stroke-linecap="round" opacity="0.45"/></svg>`,
+  ];
+  return `<div style="display:flex;justify-content:center;margin:4px 0 12px">${shapes[n-1]}</div>`;
 };
 
-// ── STATE ─────────────────────────────────────────────────────────────
-let currentPhotos = []; // base64 strings
-let currentBristol = null;
-let currentColour = null;
-let currentSymptoms = [];
-let currentEase = null;
-let charts = {};
-let historyFilter = 'all';
+/* small section label */
+const SL = (txt,extra='')=>`<div style="font-family:'Space Grotesk';font-weight:600;font-size:11px;color:${T.fgMid};text-transform:uppercase;letter-spacing:0.9px;margin-bottom:10px">${txt}${extra}</div>`;
 
-// ── NAV ───────────────────────────────────────────────────────────────
-function showScreen(name, btn) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('screen-' + name).classList.add('active');
-  if (btn) btn.classList.add('active');
+/* ───────────────────────── APP STATE ───────────────────────── */
+let prefs = { theme:'terracotta', logStyle:'wizard', bristolPicker:'cards' };
+let T = THEMES.terracotta;
 
-  if (name === 'home') renderDashboard();
-  if (name === 'stats') { setTimeout(renderCharts, 50); }
-  if (name === 'history') renderHistory();
-  if (name === 'log') resetForm();
-  if (name === 'settings') {
-    const tog = document.getElementById('darkModeToggle');
-    if (tog) tog.checked = document.documentElement.getAttribute('data-dark') === 'true';
+const S = {
+  screen:'home',
+  form:null,
+  editId:null,            // when set, the log screen is editing this entry id
+  wizardStep:0,
+  cardIdx:3,
+  histView:'calendar',
+  histFilter:{bristol:null,colour:null,symptom:null,pain:null},
+  calDate:new Date(),
+};
+
+// Convert any stored datetime (ISO or local) into the YYYY-MM-DDTHH:MM the
+// <input type="datetime-local"> expects.
+function toLocalInput(dt){
+  const d=new Date(dt); if(isNaN(d)) return nowDT();
+  const p=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+function freshForm(){
+  const f = { bristol:null, colour:null, urgency:0, pain:0, symptoms:[], notes:'', photos:[], datetime:nowDT() };
+  if (prefs.bristolPicker==='cards'){ S.cardIdx=3; f.bristol=4; } // cards picker pre-selects type 4
+  return f;
+}
+
+const SCREEN_TITLE = {home:'Passage', log:'New Entry', history:'History', stats:'Stats', settings:'Settings', help:'Help'};
+
+/* ───────────────────────── RENDER: SHELL ───────────────────────── */
+function render(){
+  const dateStr = new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+  document.documentElement.style.background = T.bg;
+  document.body.style.background = T.bg;
+  $('metaTheme').setAttribute('content', T.accent);
+
+  const isEdit = S.screen==='log' && S.editId!=null;
+  const backTo = S.screen==='help' ? 'settings' : isEdit ? 'history' : null;
+  const title = isEdit ? 'Edit Entry' : SCREEN_TITLE[S.screen];
+  const headerLeft = backTo
+    ? `<button data-action="nav:${backTo}" style="display:flex;align-items:center;gap:8px;background:none;border:none;padding:0">
+         <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M13.5 5l-6 6 6 6" stroke="${T.fg}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+         <span style="font-family:'Space Grotesk';font-weight:700;font-size:18px;color:${T.fg};letter-spacing:-0.3px">${title}</span>
+       </button>`
+    : `<div style="display:flex;align-items:center;gap:9px">${logoMark(28,T.accent)}<span style="font-family:'Space Grotesk';font-weight:700;font-size:18px;color:${T.fg};letter-spacing:-0.3px">${title}</span></div>`;
+
+  $('app').innerHTML = `
+    <div style="width:100%;max-width:480px;height:100dvh;background:${T.bg};display:flex;flex-direction:column;overflow:hidden;position:relative;margin:0 auto;font-family:'DM Sans',sans-serif">
+      <!-- Header -->
+      <div style="padding:14px 20px;padding-top:max(14px,env(safe-area-inset-top));background:${T.navBg};border-bottom:1px solid ${T.border};display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+        ${headerLeft}
+        <div style="font-size:12px;color:${T.fgMid};font-family:'Space Grotesk';font-weight:500">${dateStr}</div>
+      </div>
+      <!-- Screen -->
+      <div id="screen" style="flex:1;overflow:hidden;position:relative;height:0">${renderScreen()}</div>
+      <!-- Nav -->
+      ${renderNav()}
+    </div>`;
+  if (S.screen==='log') bindLog();
+}
+
+function renderScreen(){
+  switch(S.screen){
+    case 'home':     return renderHome();
+    case 'log':      return renderLog();
+    case 'history':  return renderHistory();
+    case 'stats':    return renderStats();
+    case 'settings': return renderSettings();
+    case 'help':     return renderHelp();
   }
+  return '';
 }
 
-// ── HEADER DATE ───────────────────────────────────────────────────────
-function updateHeaderDate() {
-  const now = new Date();
-  document.getElementById('headerDate').innerHTML =
-    now.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}) + '<br>' +
-    now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-}
-updateHeaderDate();
-setInterval(updateHeaderDate, 30000);
-
-// ── BRISTOL PICKER ────────────────────────────────────────────────────
-document.querySelectorAll('.bristol-opt').forEach(opt => {
-  opt.addEventListener('click', () => {
-    document.querySelectorAll('.bristol-opt').forEach(o => o.classList.remove('selected','selected-1','selected-2','selected-5','selected-6','selected-7'));
-    const v = parseInt(opt.dataset.val);
-    currentBristol = v;
-    opt.classList.add('selected');
-    if (v===1||v===2) opt.classList.add('selected-'+v);
-    if (v===5||v===6) opt.classList.add('selected-'+v);
-    if (v===7) opt.classList.add('selected-7');
-  });
-});
-
-// ── COLOUR PICKER ─────────────────────────────────────────────────────
-document.querySelectorAll('.colour-swatch').forEach(sw => {
-  sw.addEventListener('click', () => {
-    document.querySelectorAll('.colour-swatch').forEach(s => s.classList.remove('selected'));
-    sw.classList.add('selected');
-    currentColour = sw.dataset.val;
-  });
-});
-
-// ── PILL GROUPS ───────────────────────────────────────────────────────
-document.querySelectorAll('#symptomGroup .pill').forEach(p => {
-  p.addEventListener('click', () => {
-    p.classList.toggle('selected');
-    const v = p.dataset.val;
-    if (currentSymptoms.includes(v)) currentSymptoms = currentSymptoms.filter(x=>x!==v);
-    else currentSymptoms.push(v);
-  });
-});
-document.querySelectorAll('#easeGroup .pill').forEach(p => {
-  p.addEventListener('click', () => {
-    document.querySelectorAll('#easeGroup .pill').forEach(x=>x.classList.remove('selected'));
-    p.classList.add('selected');
-    currentEase = p.dataset.val;
-  });
-});
-
-// ── SLIDERS ───────────────────────────────────────────────────────────
-const urgencyDescs = ['','None','Very Low','Low','Mild','Moderate','Noticeable','High','Very High','Urgent','Couldn\'t Wait'];
-const painDescs = ['None','Minimal','Very Mild','Mild','Uncomfortable','Moderate','Significant','Intense','Very Intense','Severe','Excruciating'];
-
-function updateSlider(el, type) {
-  const v = parseInt(el.value);
-  const pct = ((v - parseInt(el.min)) / (parseInt(el.max) - parseInt(el.min))) * 100;
-  el.style.setProperty('--pct', pct + '%');
-  if (type === 'urgency') document.getElementById('urgencyLabel').textContent = v + ' – ' + (urgencyDescs[v]||v);
-  if (type === 'pain')    document.getElementById('painLabel').textContent    = v + ' – ' + (painDescs[v]||v);
-}
-updateSlider(document.getElementById('urgencySlider'), 'urgency');
-updateSlider(document.getElementById('painSlider'), 'pain');
-
-// ── PHOTOS ────────────────────────────────────────────────────────────
-function handlePhotos(e) {
-  const files = [...e.target.files];
-  files.forEach(f => {
-    const r = new FileReader();
-    r.onload = ev => {
-      currentPhotos.push(ev.target.result);
-      renderPhotoPreview();
-    };
-    r.readAsDataURL(f);
-  });
-  e.target.value = '';
-}
-function renderPhotoPreview() {
-  const el = document.getElementById('photoPreview');
-  el.innerHTML = currentPhotos.map((p,i) => `
-    <div class="photo-thumb">
-      <img src="${p}">
-      <button class="rm" onclick="removePhoto(${i})">✕</button>
-    </div>`).join('');
-}
-function removePhoto(i) {
-  currentPhotos.splice(i,1);
-  renderPhotoPreview();
-}
-
-// ── DATETIME DEFAULT ──────────────────────────────────────────────────
-function setDefaultDatetime() {
-  const now = new Date();
-  const pad = n => String(n).padStart(2,'0');
-  const s = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
-  document.getElementById('entryDatetime').value = s;
-}
-
-// ── FORM RESET ────────────────────────────────────────────────────────
-function resetForm() {
-  currentBristol = null; currentColour = null; currentSymptoms = []; currentEase = null; currentPhotos = [];
-  document.querySelectorAll('.bristol-opt').forEach(o=>o.classList.remove('selected','selected-1','selected-2','selected-5','selected-6','selected-7'));
-  document.querySelectorAll('.colour-swatch').forEach(s=>s.classList.remove('selected'));
-  document.querySelectorAll('#symptomGroup .pill, #easeGroup .pill').forEach(p=>p.classList.remove('selected'));
-  document.getElementById('urgencySlider').value = 5; updateSlider(document.getElementById('urgencySlider'),'urgency');
-  document.getElementById('painSlider').value = 0; updateSlider(document.getElementById('painSlider'),'pain');
-  document.getElementById('entryNotes').value = '';
-  document.getElementById('photoPreview').innerHTML = '';
-  setDefaultDatetime();
-  document.getElementById('screen-log').scrollTop = 0;
-}
-
-// ── SAVE ENTRY ────────────────────────────────────────────────────────
-function saveEntry() {
-  if (!currentBristol) { showToast('⚠️ Please select a Bristol type'); return; }
-  const entry = {
-    id: Date.now(),
-    datetime: document.getElementById('entryDatetime').value || new Date().toISOString(),
-    bristolType: currentBristol,
-    colour: currentColour,
-    urgency: parseInt(document.getElementById('urgencySlider').value),
-    pain: parseInt(document.getElementById('painSlider').value),
-    symptoms: [...currentSymptoms],
-    ease: currentEase,
-    notes: document.getElementById('entryNotes').value.trim(),
-    photos: [...currentPhotos]
-  };
-  const entries = loadEntries();
-  entries.unshift(entry);
-  saveEntries(entries);
-  showToast('✅ Entry saved!');
-  showScreen('home', document.querySelector('.nav-btn:first-child'));
-  document.querySelector('.nav-btn:first-child').classList.add('active');
-}
-
-// ── DASHBOARD ─────────────────────────────────────────────────────────
-function renderDashboard() {
-  const entries = loadEntries();
-  const today = new Date(); today.setHours(0,0,0,0);
-  const weekAgo = new Date(today); weekAgo.setDate(weekAgo.getDate()-6);
-
-  const todayEntries = entries.filter(e => new Date(e.datetime) >= today);
-  const weekEntries  = entries.filter(e => new Date(e.datetime) >= weekAgo);
-  const avgType = weekEntries.length ? (weekEntries.reduce((s,e)=>s+e.bristolType,0)/weekEntries.length).toFixed(1) : '–';
-
-  // Average pain over the last 7 days — a metric worth raising at an appointment
-  const painVals = weekEntries.map(e => Number(e.pain)).filter(v => !isNaN(v));
-  const avgPain = painVals.length ? (painVals.reduce((s,v)=>s+v,0)/painVals.length).toFixed(1) : '–';
-
-  document.getElementById('stat-today').textContent = todayEntries.length;
-  document.getElementById('stat-week').textContent  = weekEntries.length;
-  document.getElementById('stat-avg-type').textContent = avgType;
-  document.getElementById('stat-avg-pain').textContent = avgPain;
-
-  const list = document.getElementById('recentList');
-  const empty = document.getElementById('emptyHome');
-
-  if (!entries.length) {
-    list.style.display = 'none'; empty.style.display = 'block'; return;
-  }
-  list.style.display = 'block'; empty.style.display = 'none';
-
-  const recent = entries.slice(0,10);
-  list.innerHTML = '<p class="card-title" style="padding:0 4px 8px;font-size:14px;">Recent Entries</p>' +
-    recent.map(e => entryChip(e)).join('');
-}
-
-function entryChip(e) {
-  const dt = new Date(e.datetime);
-  const timeStr = dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-  const dateStr = dt.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-  const symptoms = e.symptoms.length ? e.symptoms.slice(0,2).join(', ') : (e.colour || 'No extra symptoms');
-  return `<div class="entry-chip type-${e.bristolType}" onclick="showDetail(${e.id})">
-    <div class="entry-type-badge">${e.bristolType}</div>
-    <div class="entry-info">
-      <div class="title">Type ${e.bristolType} — ${BRISTOL_LABELS[e.bristolType]}</div>
-      <div class="sub">${symptoms}${e.photos.length?' · 📷'+e.photos.length:''}</div>
-    </div>
-    <div class="entry-time">${timeStr}<br><span style="font-weight:400;">${dateStr}</span></div>
+function renderNav(){
+  const tabs=[
+    {id:'home',label:'Home',ico:icoHome},
+    {id:'history',label:'History',ico:icoList},
+    {id:'_cta_',label:''},
+    {id:'stats',label:'Stats',ico:icoChart},
+    {id:'settings',label:'Settings',ico:icoGear},
+  ];
+  const isLog = S.screen==='log';
+  return `<div style="display:flex;align-items:center;background:${T.navBg};border-top:1px solid ${T.border};padding-bottom:env(safe-area-inset-bottom);flex-shrink:0;z-index:10">
+    ${tabs.map(tab=>{
+      if(tab.id==='_cta_') return `<div style="flex:1;display:flex;justify-content:center">
+        <button data-action="cta" style="width:54px;height:54px;border-radius:50%;background:${T.accent};border:none;display:flex;align-items:center;justify-content:center;margin-top:-20px;box-shadow:0 4px 20px ${T.accent}66">${isLog?icoCheck('#fff',18):icoPlus('#fff',16)}</button>
+      </div>`;
+      const active=S.screen===tab.id;
+      const c=active?T.accent:T.fgMid;
+      return `<button data-action="nav:${tab.id}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px 8px;background:none;border:none;color:${c};position:relative">
+        ${active?`<div style="position:absolute;top:8px;width:28px;height:28px;border-radius:14px;background:${T.accentBg}"></div>`:''}
+        <div style="position:relative;z-index:1">${tab.ico(c,20)}</div>
+        <span style="font-family:'Space Grotesk';font-weight:600;font-size:10px;position:relative;z-index:1">${tab.label}</span>
+      </button>`;
+    }).join('')}
   </div>`;
 }
 
-// ── HISTORY ───────────────────────────────────────────────────────────
-document.querySelectorAll('.filter-chip').forEach(chip => {
-  chip.addEventListener('click', () => {
-    document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
-    chip.classList.add('active');
-    historyFilter = chip.dataset.filter;
-    renderHistory();
+/* ───────────────────────── HOME ───────────────────────── */
+function renderHome(){
+  const entries = loadEntries().slice().sort((a,b)=>entryTs(b)-entryTs(a));
+  const hour=new Date().getHours();
+  const greeting = hour<12?'Good morning.':hour<17?'Good afternoon.':'Good evening.';
+  const today=new Date().toDateString();
+  const todayN=entries.filter(e=>new Date(entryTs(e)).toDateString()===today).length;
+  const weekArr=entries.filter(e=>entryTs(e)>=Date.now()-7*86400000);
+  const weekN=weekArr.length;
+  const avgT=weekArr.length?(weekArr.reduce((a,b)=>a+b.bristolType,0)/weekArr.length).toFixed(1):'–';
+  const last=entries[0];
+
+  let lastBlock;
+  if(last){
+    const b=BRISTOL[last.bristolType-1];
+    lastBlock=`<div style="margin-bottom:28px">
+      <div style="font-size:12px;color:${T.fgMid};font-family:'Space Grotesk';margin-bottom:6px">Last logged ${timeAgo(entryTs(last))}</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:10px;height:10px;border-radius:50%;background:${b.color};flex-shrink:0"></div>
+        <span style="font-family:'Space Grotesk';font-weight:600;font-size:15px;color:${T.fg}">${b.name}</span>
+        ${last.colour?`<span style="font-size:13px;color:${T.fgMid}">· ${last.colour}</span>`:''}
+      </div>
+      ${(last.symptoms&&last.symptoms.length)?`<div style="font-size:12px;color:${T.fgMid};margin-top:4px;padding-left:20px">${esc(last.symptoms.join(', '))}</div>`:''}
+    </div>`;
+  } else {
+    lastBlock=`<div style="margin-bottom:28px;font-size:14px;color:${T.fgMid};font-family:'Space Grotesk'">Tap + to log your first entry.</div>`;
+  }
+
+  return `<div style="overflow-y:auto;height:100%"><div style="padding:32px 24px 0">
+    <div style="font-family:'Space Grotesk';font-weight:700;font-size:28px;color:${T.fg};letter-spacing:-0.6px;line-height:1.15;margin-bottom:36px">${greeting}</div>
+
+    <div style="margin-bottom:32px">
+      <div style="display:flex;align-items:flex-end;gap:12px;margin-bottom:6px">
+        <span style="font-family:'Space Grotesk';font-weight:700;font-size:72px;color:${T.accent};line-height:1;letter-spacing:-3px">${todayN}</span>
+        <span style="font-family:'Space Grotesk';font-weight:500;font-size:17px;color:${T.fgMid};padding-bottom:10px;letter-spacing:-0.2px">${todayN===1?'movement':'movements'}<br/>today</span>
+      </div>
+      ${todayN===0?`<div style="font-size:13px;color:${T.fgLight};font-family:'Space Grotesk'">Nothing logged yet today.</div>`:''}
+    </div>
+
+    <div style="height:1px;background:${T.border};margin-bottom:28px"></div>
+
+    <div style="display:flex;margin-bottom:28px">
+      <div style="flex:1;padding-right:24px;border-right:1px solid ${T.border}">
+        <div style="font-family:'Space Grotesk';font-weight:700;font-size:34px;color:${T.fg};letter-spacing:-1px;line-height:1">${weekN}</div>
+        <div style="font-size:12px;color:${T.fgMid};margin-top:5px;font-family:'Space Grotesk';font-weight:400">this week</div>
+      </div>
+      <div style="flex:1;padding-left:24px">
+        <div style="font-family:'Space Grotesk';font-weight:700;font-size:34px;color:${T.fg};letter-spacing:-1px;line-height:1">${avgT}</div>
+        <div style="font-size:12px;color:${T.fgMid};margin-top:5px;font-family:'Space Grotesk';font-weight:400">avg type</div>
+      </div>
+    </div>
+
+    <div style="height:1px;background:${T.border};margin-bottom:24px"></div>
+    ${lastBlock}
+    <div style="height:1px;background:${T.border};margin-bottom:24px"></div>
+
+    <div style="padding-bottom:44px">
+      <div style="font-size:10px;color:${T.fgLight};font-family:'Space Grotesk';font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">A thought</div>
+      <div style="font-size:15px;color:${T.fgMid};line-height:1.75;font-style:italic;font-family:'Space Grotesk';font-weight:400">&#8220;${esc(getDailyQuote())}&#8221;</div>
+    </div>
+  </div></div>`;
+}
+
+/* ───────────────────────── BRISTOL PICKERS ───────────────────────── */
+function renderBristolPicker(){
+  return prefs.bristolPicker==='cards' ? renderBristolCards() : renderBristolTiles();
+}
+
+function renderBristolCards(){
+  const idx=S.cardIdx, b=BRISTOL[idx];
+  const dots=BRISTOL.map((_,i)=>`<button data-action="card-dot:${i}" style="height:6px;border-radius:3px;border:none;padding:0;width:${i===idx?24:7}px;background:${i===idx?BRISTOL[i].color:T.border};transition:all 0.22s"></button>`).join('');
+  return `<div id="bristolPicker">
+    <div style="display:flex;gap:5px;justify-content:center;margin-bottom:16px">${dots}</div>
+    <div style="border:2px solid ${b.color};border-radius:18px;padding:22px 20px;text-align:center;position:relative;background:${T.surface};box-shadow:0 4px 32px ${b.color}22">
+      <button data-action="card-prev" ${idx===0?'disabled':''} style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:${T.inputBg};border:none;border-radius:8px;width:32px;height:32px;font-size:20px;color:${idx===0?T.fgLight:T.fgMid};display:flex;align-items:center;justify-content:center">‹</button>
+      <button data-action="card-next" ${idx===6?'disabled':''} style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:${T.inputBg};border:none;border-radius:8px;width:32px;height:32px;font-size:20px;color:${idx===6?T.fgLight:T.fgMid};display:flex;align-items:center;justify-content:center">›</button>
+      <div style="width:56px;height:56px;border-radius:50%;background:${b.color};color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;font-size:26px;margin:0 auto 10px;box-shadow:0 6px 24px ${b.color}55;animation:pop 0.3s">${b.n}</div>
+      ${bristolShape(b.n,b.color)}
+      <div style="font-family:'Space Grotesk';font-weight:700;font-size:17px;color:${T.fg};margin-bottom:6px;letter-spacing:-0.3px">${b.name}</div>
+      <div style="font-size:13px;color:${T.fgMid};line-height:1.55;margin-bottom:14px;padding:0 16px">${b.desc}</div>
+      <span style="background:${b.color}22;color:${b.color};border-radius:20px;padding:5px 16px;font-size:12px;font-weight:700;font-family:'Space Grotesk';display:inline-block">${b.tag}</span>
+    </div>
+  </div>`;
+}
+
+function renderBristolTiles(){
+  const sel=S.form.bristol;
+  const b=sel?BRISTOL[sel-1]:null;
+  const tiles=BRISTOL.map(item=>{
+    const active=sel===item.n;
+    return `<button data-action="bristol:${item.n}" style="flex:1;height:48px;border-radius:10px;border:2px solid ${active?item.color:T.border};background:${active?item.color:T.inputBg};color:${active?'#fff':T.fgMid};font-family:'Space Grotesk';font-weight:700;font-size:15px;transition:all 0.15s;transform:${active?'scale(1.04)':'scale(1)'};box-shadow:${active?`0 4px 16px ${item.color}44`:'none'}">${item.n}</button>`;
+  }).join('');
+  const card = b
+    ? `<div style="width:38px;height:38px;border-radius:50%;background:${b.color};color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;font-size:16px;flex-shrink:0;box-shadow:0 2px 10px ${b.color}55">${b.n}</div>
+       <div style="flex:1;min-width:0"><div style="font-family:'Space Grotesk';font-weight:700;font-size:14px;color:${T.fg}">${b.name}</div><div style="font-size:12px;color:${T.fgMid};margin-top:3px;line-height:1.4">${b.desc}</div></div>
+       <div style="background:${b.color}22;color:${b.color};border-radius:20px;padding:4px 11px;font-size:11px;font-weight:700;font-family:'Space Grotesk';white-space:nowrap;flex-shrink:0">${b.tag}</div>`
+    : `<span style="font-size:13px;color:${T.fgLight};margin:0 auto;font-family:'Space Grotesk'">Select type 1–7</span>`;
+  return `<div id="bristolPicker">
+    <div style="display:flex;gap:5px;margin-bottom:10px">${tiles}</div>
+    <div style="background:${b?b.color+'18':T.inputBg};border:1.5px solid ${b?b.color+'44':T.border};border-radius:12px;padding:14px 16px;min-height:62px;display:flex;align-items:center;gap:14px;transition:all 0.2s">${card}</div>
+  </div>`;
+}
+
+/* ───────────────────────── COLOUR PICKER / SLIDER / SYMPTOMS / PHOTOS / DATETIME ───────────────────────── */
+function renderColourPicker(){
+  const cell = c => {
+    const active=S.form.colour===c.val;
+    return `<button data-action="colour:${c.val}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;background:${active?T.accentBg:T.inputBg};border:2px solid ${active?T.accent:T.border};border-radius:11px;padding:10px 4px;transition:all 0.14s">
+      <div style="width:22px;height:22px;border-radius:50%;background:${c.hex};box-shadow:${active?`0 2px 8px ${c.hex}88`:'none'}"></div>
+      <span style="font-size:9px;color:${active?T.accent:T.fgMid};font-family:'Space Grotesk';font-weight:600;text-align:center;line-height:1.2">${c.val}</span>
+    </button>`;
+  };
+  const row1=COLOURS.filter(c=>c.row===1).map(cell).join('');
+  const row2=COLOURS.filter(c=>c.row===2).map(cell).join('');
+  return `<div style="display:flex;flex-direction:column;gap:7px"><div style="display:flex;gap:7px">${row1}</div><div style="display:flex;gap:7px">${row2}</div></div>`;
+}
+
+function renderSlider(label,field,val,color,lo,hi){
+  const pct=(val/10)*100;
+  return `<div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px">
+      <div style="font-family:'Space Grotesk';font-weight:600;font-size:11px;color:${T.fgMid};text-transform:uppercase;letter-spacing:0.9px">${label}</div>
+      <span id="val-${field}" style="font-family:'Space Grotesk';font-weight:700;font-size:22px;color:${color};line-height:1;letter-spacing:-0.5px">${val}</span>
+    </div>
+    <input type="range" min="0" max="10" value="${val}" data-field="${field}" id="slider-${field}" style="width:100%;height:5px;border-radius:3px;outline:none;--thumb:${color};background:linear-gradient(to right,${color} ${pct}%,${T.border} ${pct}%)">
+    <div style="display:flex;justify-content:space-between;margin-top:6px"><span style="font-size:11px;color:${T.fgLight};font-family:'Space Grotesk'">${lo}</span><span style="font-size:11px;color:${T.fgLight};font-family:'Space Grotesk'">${hi}</span></div>
+  </div>`;
+}
+
+function renderSymptoms(){
+  return `<div style="display:flex;flex-wrap:wrap;gap:8px">${SYMPTOMS.map(s=>{
+    const active=S.form.symptoms.includes(s);
+    return `<button data-action="symptom:${s}" style="padding:8px 15px;border-radius:20px;border:2px solid ${active?T.accent:T.border};background:${active?T.accentBg:'transparent'};color:${active?T.accent:T.fgMid};font-family:'Space Grotesk';font-weight:600;font-size:13px;transition:all 0.14s;line-height:1">${s}</button>`;
+  }).join('')}</div>`;
+}
+
+function renderNotes(){
+  return `<textarea data-field="notes" placeholder="Diet, medication, stress…" rows="3" style="width:100%;background:${T.inputBg};border:1.5px solid ${T.border};border-radius:10px;padding:12px 14px;font-size:14px;color:${T.fg};resize:none;outline:none;line-height:1.55">${esc(S.form.notes)}</textarea>`;
+}
+
+function renderPhotos(){
+  const thumbs = S.form.photos.length ? `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px">${
+    S.form.photos.map((src,i)=>`<div style="position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden"><img src="${src}" alt="" style="width:100%;height:100%;object-fit:cover"><button data-action="photo-remove:${i}" style="position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.6);color:#fff;border:none;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:700">✕</button></div>`).join('')
+  }</div>` : '';
+  return `<div id="photoSection">${SL('Photos')}
+    <button data-action="photo-add" style="width:100%;padding:18px 16px;border-radius:12px;border:2px dashed ${T.border};background:${T.inputBg};display:flex;align-items:center;gap:12px;color:${T.fgMid}">
+      ${icoCam(T.accent,22)}
+      <div style="text-align:left"><div style="font-family:'Space Grotesk';font-weight:600;font-size:14px;color:${T.accent}">Add photos</div><div style="font-size:11px;color:${T.fgMid};margin-top:2px">Stored privately on your device</div></div>
+    </button>${thumbs}</div>`;
+}
+
+function renderDateTime(){
+  return `<div>${SL('Date & Time')}
+    <input type="datetime-local" data-field="datetime" value="${S.form.datetime}" style="width:100%;padding:12px 14px;background:${T.inputBg};border:1.5px solid ${T.border};border-radius:10px;font-size:14px;color:${T.fg};outline:none;color-scheme:${T.scheme}"></div>`;
+}
+
+/* ───────────────────────── LOG SCREEN ───────────────────────── */
+function renderLog(){
+  return S.editId!=null ? renderEditForm() : renderWizard();
+}
+
+function renderWizard(){
+  const STEPS=['Stool type','Colour & pain','Symptoms & photos'];
+  const step=S.wizardStep;
+  let body='';
+  if(step===0){
+    body=`<div id="bristolWrap">
+      <p style="font-size:13px;color:${T.fgMid};margin-bottom:18px;line-height:1.6">Select the type that best matches. This is the only required field.</p>
+      ${renderBristolPicker()}
+      <p id="bristolError" style="margin-top:10px;font-size:12px;color:${T.danger};font-family:'Space Grotesk';font-weight:600;display:none">Please select a type to continue.</p>
+      <div style="margin-top:22px">${renderDateTime()}</div>
+    </div>`;
+  } else if(step===1){
+    body=`<div style="margin-bottom:22px">${SL('Colour')}${renderColourPicker()}</div>
+      <div style="margin-bottom:22px">${renderSlider('Urgency','urgency',S.form.urgency,T.accent,'None','Extreme')}</div>
+      ${renderSlider('Pain','pain',S.form.pain,T.danger,'None','Severe')}`;
+  } else {
+    body=`<div style="margin-bottom:22px">${SL('Symptoms')}${renderSymptoms()}</div>
+      <div style="margin-bottom:22px">${SL('Notes')}${renderNotes()}</div>
+      ${renderPhotos()}`;
+  }
+  const footer=`<div style="padding:12px 20px;border-top:1px solid ${T.border};display:flex;gap:10px;flex-shrink:0;background:${T.navBg}">
+    ${step>0?`<button data-action="wizard-back" style="flex:1;padding:14px;border-radius:12px;border:1.5px solid ${T.border};background:transparent;font-family:'Space Grotesk';font-weight:700;font-size:14px;color:${T.fgMid}">Back</button>`:''}
+    <button data-action="${step<2?'wizard-next':'save'}" style="flex:2;padding:14px;border-radius:12px;border:none;background:${T.accent};font-family:'Space Grotesk';font-weight:700;font-size:14px;color:#fff;box-shadow:0 4px 16px ${T.accent}44">${step<2?'Continue':'Save Entry'}</button>
+  </div>`;
+
+  return `<div style="height:100%;display:flex;flex-direction:column;background:${T.bg}">
+    <div style="padding:18px 20px 0;flex-shrink:0">
+      <div style="display:flex;gap:5px;margin-bottom:16px">${STEPS.map((_,i)=>`<div style="flex:1;height:3px;border-radius:2px;background:${i<=step?T.accent:T.border};transition:background 0.25s"></div>`).join('')}</div>
+      <div style="font-family:'Space Grotesk';font-weight:500;font-size:11px;color:${T.fgMid};text-transform:uppercase;letter-spacing:0.9px">${step+1} of ${STEPS.length}</div>
+      <div style="font-family:'Space Grotesk';font-weight:700;font-size:24px;color:${T.fg};margin-top:3px;margin-bottom:22px;letter-spacing:-0.4px">${STEPS[step]}</div>
+    </div>
+    <div id="logBody" style="flex:1;overflow-y:auto;padding:0 20px 24px">${body}</div>
+    ${footer}
+  </div>`;
+}
+
+/* Edit form — a single scrolling form (everything visible) used when editing an
+   existing entry. Reuses the same field components as the wizard. */
+function renderEditForm(){
+  return `<div style="overflow-y:auto;height:100%;background:${T.bg};padding-bottom:28px">
+    <div style="padding:20px 20px 0">
+      ${SL('Stool type',` <span style="color:${T.accent}">*</span>`)}
+      <div id="bristolWrap">${renderBristolPicker()}</div>
+      <p id="bristolError" style="margin-top:8px;font-size:12px;color:${T.danger};font-family:'Space Grotesk';font-weight:600;display:none">Select a type to save.</p>
+    </div>
+    <div style="padding:20px 20px 0">${SL('Colour')}${renderColourPicker()}</div>
+    <div style="padding:20px 20px 0">${renderSlider('Urgency','urgency',S.form.urgency,T.accent,'None','Extreme')}</div>
+    <div style="padding:20px 20px 0">${renderSlider('Pain','pain',S.form.pain,T.danger,'None','Severe')}</div>
+    <div style="padding:22px 20px 0">${SL('Symptoms')}${renderSymptoms()}</div>
+    <div style="padding:22px 20px 0">${SL('Notes')}${renderNotes()}</div>
+    <div style="padding:22px 20px 0">${renderPhotos()}</div>
+    <div style="padding:22px 20px 0">${renderDateTime()}</div>
+    <div style="padding:28px 20px 0;display:flex;flex-direction:column;gap:10px">
+      <button data-action="save" style="width:100%;padding:15px;border-radius:12px;border:none;background:${T.accent};font-family:'Space Grotesk';font-weight:700;font-size:14px;color:#fff;box-shadow:0 4px 16px ${T.accent}44">Save changes</button>
+      <button data-action="delete-entry" style="width:100%;padding:15px;border-radius:12px;border:1.5px solid ${T.danger};background:transparent;font-family:'Space Grotesk';font-weight:700;font-size:14px;color:${T.danger}">Delete entry</button>
+    </div>
+  </div>`;
+}
+
+/* live-binding for inputs inside log (sliders/notes/datetime) — listeners are
+   delegated globally, but the slider gradient needs imperative updates */
+function bindLog(){ /* nothing extra needed; handled via delegation */ }
+
+/* ───────────────────────── HISTORY ───────────────────────── */
+function renderHistory(){
+  const toggle=`<div style="padding:12px 20px;flex-shrink:0;border-bottom:1px solid ${T.border}">
+    <div style="display:flex;background:${T.inputBg};border-radius:10px;padding:3px">
+      ${['Calendar','List'].map(v=>{const active=S.histView===v.toLowerCase();return `<button data-action="hist-view:${v.toLowerCase()}" style="flex:1;padding:7px;border-radius:8px;border:none;background:${active?T.surface:'transparent'};font-family:'Space Grotesk';font-weight:600;font-size:13px;color:${active?T.fg:T.fgMid};box-shadow:${active?'0 1px 4px rgba(0,0,0,0.09)':'none'}">${v}</button>`;}).join('')}
+    </div></div>`;
+  const body = S.histView==='calendar'
+    ? `<div style="flex:1;overflow-y:auto">${renderCalendar()}</div>`
+    : renderHistoryList();
+  return `<div style="height:100%;display:flex;flex-direction:column">${toggle}${body}</div>`;
+}
+
+function renderCalendar(){
+  const vd=S.calDate, year=vd.getFullYear(), mon=vd.getMonth();
+  const daysInMonth=new Date(year,mon+1,0).getDate();
+  const startDow=(new Date(year,mon,1).getDay()+6)%7;
+  const entries=loadEntries();
+  const map={};
+  entries.forEach(e=>{const d=new Date(entryTs(e));if(d.getFullYear()===year&&d.getMonth()===mon){const k=d.getDate();(map[k]=map[k]||[]).push(e);}});
+  const todayDate=new Date();
+  const isThisMonth=todayDate.getFullYear()===year&&todayDate.getMonth()===mon;
+  const r=16, circ=+(2*Math.PI*r).toFixed(2);
+  const cells=[...Array(startDow).fill(null),...Array.from({length:daysInMonth},(_,i)=>i+1)];
+
+  const dayCells=cells.map((day,i)=>{
+    if(!day) return `<div></div>`;
+    const de=map[day]||[], count=de.length;
+    const isToday=isThisMonth&&todayDate.getDate()===day;
+    const avgT=de.length?Math.round(de.reduce((s,e)=>s+e.bristolType,0)/de.length):0;
+    const color=avgT?BRISTOL[avgT-1].color:T.border;
+    const fill=Math.min(count/4,1), offset=circ*(1-fill);
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:1px">
+      <div style="font-size:9px;font-family:'Space Grotesk';font-weight:${isToday?700:400};color:${isToday?T.accent:T.fgLight}">${day}</div>
+      <svg width="38" height="38" viewBox="0 0 38 38">
+        <circle cx="19" cy="19" r="${r}" fill="${count>0?color+'18':'none'}"/>
+        <circle cx="19" cy="19" r="${r}" fill="none" stroke="${count>0?color+'40':T.border}" stroke-width="2.5"/>
+        ${count>0?`<circle cx="19" cy="19" r="${r}" fill="none" stroke="${color}" stroke-width="2.5" stroke-dasharray="${circ}" stroke-dashoffset="${offset}" stroke-linecap="round" transform="rotate(-90 19 19)"/>`:''}
+        ${count>0?`<text x="19" y="23.5" text-anchor="middle" font-size="12" font-weight="700" fill="${color}" font-family="Space Grotesk,sans-serif">${count}</text>`:''}
+        ${isToday?`<circle cx="19" cy="34.5" r="2" fill="${T.accent}"/>`:''}
+      </svg></div>`;
+  }).join('');
+
+  return `<div style="padding:16px 20px 28px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <button data-action="cal-prev" style="background:none;border:1.5px solid ${T.border};border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:${T.fgMid};font-size:18px">‹</button>
+      <div style="font-family:'Space Grotesk';font-weight:700;font-size:15px;color:${T.fg}">${vd.toLocaleDateString('en-GB',{month:'long',year:'numeric'})}</div>
+      <button data-action="cal-next" style="background:none;border:1.5px solid ${T.border};border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:${T.fgMid};font-size:18px">›</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:6px">${['M','T','W','T','F','S','S'].map(d=>`<div style="text-align:center;font-size:10px;color:${T.fgMid};font-family:'Space Grotesk';font-weight:600;padding-bottom:6px">${d}</div>`).join('')}</div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);row-gap:6px">${dayCells}</div>
+    <div style="margin-top:20px;padding:14px;background:${T.surface};border:1px solid ${T.border};border-radius:12px">
+      <div style="font-family:'Space Grotesk';font-weight:600;font-size:10px;color:${T.fgMid};text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px">Ring colour = avg Bristol type that day</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px 12px">${BRISTOL.map(b=>`<div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:50%;background:${b.color};flex-shrink:0"></div><span style="font-size:10px;color:${T.fgMid};font-family:'Space Grotesk'">${b.n} — ${b.tag}</span></div>`).join('')}</div>
+      <div style="margin-top:8px;font-size:10px;color:${T.fgLight};font-family:'Space Grotesk'">Ring fills as count increases — full ring = 4+ movements</div>
+    </div>
+  </div>`;
+}
+
+function painInBucket(p,bucket){
+  p=+p||0;
+  if(bucket==='0') return p===0;
+  if(bucket==='1-3') return p>=1&&p<=3;
+  if(bucket==='4-6') return p>=4&&p<=6;
+  if(bucket==='7-10') return p>=7;
+  return true;
+}
+
+function renderHistoryList(){
+  const hf=S.histFilter;
+  const entries=loadEntries().slice().sort((a,b)=>entryTs(b)-entryTs(a));
+  let filtered=entries;
+  if(hf.bristol) filtered=filtered.filter(e=>e.bristolType===hf.bristol);
+  if(hf.colour)  filtered=filtered.filter(e=>e.colour===hf.colour);
+  if(hf.symptom) filtered=filtered.filter(e=>(e.symptoms||[]).includes(hf.symptom));
+  if(hf.pain)    filtered=filtered.filter(e=>painInBucket(e.pain,hf.pain));
+  const anyFilter = hf.bristol||hf.colour||hf.symptom||hf.pain;
+
+  const todayStr=new Date().toDateString(), yestStr=new Date(Date.now()-86400000).toDateString();
+  const rows=[]; let lastDay=null;
+  filtered.forEach(e=>{
+    const day=new Date(entryTs(e)).toDateString();
+    if(day!==lastDay){
+      const label=day===todayStr?'Today':day===yestStr?'Yesterday':new Date(entryTs(e)).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+      rows.push({type:'day',label}); lastDay=day;
+    }
+    rows.push({type:'entry',entry:e});
   });
+
+  const selStyle=`appearance:none;-webkit-appearance:none;flex:1;min-width:0;height:34px;padding:0 26px 0 12px;border-radius:17px;border:2px solid ${T.border};background:${T.inputBg} url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23${T.fgMid.slice(1)}' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 11px center;font-family:'Space Grotesk';font-weight:600;font-size:12px;color:${T.fg};color-scheme:${T.scheme}`;
+  const opt=(v,label,sel)=>`<option value="${v}" ${sel?'selected':''}>${label}</option>`;
+  const colourSel=`<select data-filter="colour" style="${selStyle}">${opt('','Colour',!hf.colour)}${COLOURS.map(c=>opt(c.val,c.val,hf.colour===c.val)).join('')}</select>`;
+  const sympSel=`<select data-filter="symptom" style="${selStyle}">${opt('','Symptom',!hf.symptom)}${SYMPTOMS.map(s=>opt(s,s,hf.symptom===s)).join('')}</select>`;
+  const painSel=`<select data-filter="pain" style="${selStyle}">${opt('','Pain',!hf.pain)}${opt('0','No pain',hf.pain==='0')}${opt('1-3','Pain 1–3',hf.pain==='1-3')}${opt('4-6','Pain 4–6',hf.pain==='4-6')}${opt('7-10','Pain 7–10',hf.pain==='7-10')}</select>`;
+
+  const filter=`<div style="padding:10px 16px;flex-shrink:0;border-bottom:1px solid ${T.border}">
+    <div style="display:grid;grid-template-columns:1.4fr repeat(7,1fr);gap:5px">
+      <button data-action="hist-filter:all" style="height:32px;border-radius:16px;font-size:12px;font-family:'Space Grotesk';font-weight:600;border:2px solid ${!hf.bristol?T.accent:T.border};background:${!hf.bristol?T.accentBg:'transparent'};color:${!hf.bristol?T.accent:T.fgMid}">All</button>
+      ${BRISTOL.map(b=>{const active=hf.bristol===b.n;return `<button data-action="hist-filter:${b.n}" style="height:32px;border-radius:16px;font-size:13px;font-family:'Space Grotesk';font-weight:700;border:2px solid ${active?b.color:T.border};background:${active?b.color:'transparent'};color:${active?'#fff':b.color}">${b.n}</button>`;}).join('')}
+    </div>
+    <div style="display:flex;gap:6px;margin-top:7px;align-items:center">${colourSel}${sympSel}${painSel}</div>
+    ${anyFilter?`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px"><span style="font-size:11px;color:${T.fgMid};font-family:'Space Grotesk'">${filtered.length} ${filtered.length===1?'entry':'entries'}</span><button data-action="hist-clear" style="background:none;border:none;color:${T.accent};font-family:'Space Grotesk';font-weight:700;font-size:12px;padding:0">Clear filters</button></div>`:''}
+  </div>`;
+
+  const list = rows.length===0
+    ? `<div style="text-align:center;padding:48px 0;color:${T.fgMid};font-family:'Space Grotesk';font-weight:600">${anyFilter?'No matching entries':'No entries'}</div>`
+    : rows.map(item=>{
+      if(item.type==='day') return `<div style="padding:16px 20px 8px;font-family:'Space Grotesk';font-weight:700;font-size:11px;color:${T.fgMid};text-transform:uppercase;letter-spacing:0.9px">${item.label}</div>`;
+      const e=item.entry,b=BRISTOL[e.bristolType-1];
+      const det=[e.colour,(e.symptoms||[]).join(', ')].filter(Boolean).join(' · ')||'No details';
+      const hasPhoto=e.photos&&e.photos.length;
+      return `<div data-action="edit:${e.id}" style="margin:0 16px 3px;border-radius:10px;overflow:hidden;display:flex;background:${T.surface};border:1px solid ${T.borderLight};cursor:pointer">
+        <div style="width:4px;background:${b.color};flex-shrink:0"></div>
+        <div style="flex:1;display:flex;gap:12px;padding:12px 14px;align-items:center;min-width:0">
+          <div style="width:36px;height:36px;border-radius:9px;background:${b.color}18;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;font-size:15px;color:${b.color};flex-shrink:0">${e.bristolType}</div>
+          <div style="flex:1;min-width:0"><div style="font-family:'Space Grotesk';font-weight:600;font-size:13px;color:${T.fg}">${b.name}${hasPhoto?` <span style="color:${T.fgLight};font-size:11px">· ${e.photos.length}📷</span>`:''}</div><div style="font-size:11px;color:${T.fgMid};margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(det)}</div></div>
+          <div style="text-align:right;flex-shrink:0"><div style="font-size:12px;color:${T.fgMid};font-family:'Space Grotesk';font-weight:500">${new Date(entryTs(e)).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div>${e.pain>0?`<div style="font-size:10px;color:${T.danger};margin-top:2px;font-family:'Space Grotesk'">Pain ${e.pain}/10</div>`:''}</div>
+          <span style="color:${T.fgLight};font-size:18px;line-height:1;flex-shrink:0">›</span>
+        </div></div>`;
+    }).join('');
+
+  return `${filter}<div style="flex:1;overflow-y:auto;padding:4px 0 28px">${list}</div>`;
+}
+
+/* ───────────────────────── STATS ───────────────────────── */
+function renderStats(){
+  const entries=loadEntries();
+  const now=Date.now();
+  const tw7=entries.filter(e=>entryTs(e)>=now-7*86400000);
+  const lw7=entries.filter(e=>entryTs(e)>=now-14*86400000&&entryTs(e)<now-7*86400000);
+  const avg=(arr,k)=>arr.length?+(arr.reduce((s,e)=>s+e[k],0)/arr.length).toFixed(1):0;
+
+  const summary=[
+    {label:'movements',curr:tw7.length,prev:lw7.length,hb:null},
+    {label:'avg type',curr:avg(tw7,'bristolType'),prev:avg(lw7,'bristolType'),hb:null},
+    {label:'avg pain',curr:avg(tw7,'pain'),prev:avg(lw7,'pain'),hb:false},
+  ];
+
+  const days14=Array.from({length:14},(_,i)=>{
+    const d=new Date(now-(13-i)*86400000); d.setHours(0,0,0,0);
+    const next=new Date(d.getTime()+86400000);
+    const de=entries.filter(e=>entryTs(e)>=d.getTime()&&entryTs(e)<next.getTime());
+    return { label:d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}),
+      pain:de.length?+(de.reduce((s,e)=>s+e.pain,0)/de.length).toFixed(1):null,
+      urgency:de.length?+(de.reduce((s,e)=>s+e.urgency,0)/de.length).toFixed(1):null,
+      count:de.length };
+  });
+  const days7=days14.slice(7);
+  const maxDay=Math.max(...days7.map(d=>d.count),1);
+
+  const mkPath=pts=>{
+    const W=280,H=52,pd=4; let d='',prev=false; const dots=[];
+    pts.forEach((v,i)=>{
+      if(v===null){prev=false;dots.push(null);return;}
+      const x=(i/13)*W, y=H-pd-(v/10)*(H-pd*2);
+      d+=prev?`L${x},${y}`:`M${x},${y}`; prev=true; dots.push({x,y});
+    });
+    return {d,dots};
+  };
+  const pain14=mkPath(days14.map(d=>d.pain));
+  const urgency14=mkPath(days14.map(d=>d.urgency));
+
+  const tod={morning:0,afternoon:0,evening:0};
+  entries.forEach(e=>{const h=new Date(entryTs(e)).getHours();if(h>=5&&h<12)tod.morning++;else if(h>=12&&h<18)tod.afternoon++;else tod.evening++;});
+  const todTotal=entries.length||1;
+
+  const symC={}; SYMPTOMS.forEach(s=>symC[s]=0);
+  entries.forEach(e=>(e.symptoms||[]).forEach(s=>symC[s]=(symC[s]||0)+1));
+  const topSym=Object.entries(symC).filter(([,c])=>c>0).sort(([,a],[,b])=>b-a);
+  const maxSym=Math.max(...topSym.map(([,c])=>c),1);
+
+  const tc=Array(7).fill(0); entries.forEach(e=>tc[e.bristolType-1]++);
+  const maxTc=Math.max(...tc,1);
+
+  const card=(inner,mb=12)=>`<div style="background:${T.surface};border:1px solid ${T.border};border-radius:14px;padding:16px;margin-bottom:${mb}px">${inner}</div>`;
+  const clab=t=>`<div style="font-family:'Space Grotesk';font-weight:600;font-size:11px;color:${T.fgMid};text-transform:uppercase;letter-spacing:0.8px;margin-bottom:14px">${t}</div>`;
+
+  const summaryTiles=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">${summary.map(({label,curr,prev,hb})=>{
+    const delta=curr-prev, hasDelta=lw7.length>0;
+    const isGood=hb===false?delta<0:hb===true?delta>0:null;
+    const dc=isGood===true?'#1D9E75':isGood===false?T.danger:T.fgMid;
+    return `<div style="background:${T.surface};border:1px solid ${T.border};border-radius:14px;padding:14px 8px;text-align:center">
+      <div style="font-family:'Space Grotesk';font-weight:700;font-size:26px;color:${T.accent};line-height:1;letter-spacing:-0.5px">${curr||'–'}</div>
+      <div style="font-family:'Space Grotesk';font-size:10px;color:${T.fgMid};margin-top:4px;font-weight:500;line-height:1.3">${label}</div>
+      ${(hasDelta&&delta!==0)?`<div style="font-size:10px;color:${dc};font-family:'Space Grotesk';font-weight:600;margin-top:5px">${delta>0?'↑':'↓'} ${Math.abs(delta).toFixed(delta%1===0?0:1)}</div>`:''}
+    </div>`;
+  }).join('')}</div>`;
+
+  const barChart=card(`${clab('Daily movements — 7 days')}<div style="display:flex;gap:7px;align-items:flex-end;height:68px">${days7.map(d=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="font-size:10px;color:${T.accent};font-family:'Space Grotesk';font-weight:700;min-height:13px">${d.count||''}</div><div style="width:100%;border-radius:4px;background:${T.accent};min-height:4px;height:${d.count?`${(d.count/maxDay)*46}px`:'4px'};opacity:${d.count?1:0.18}"></div><div style="font-size:9px;color:${T.fgMid};font-family:'Space Grotesk'">${d.label.split(' ')[0]}</div></div>`).join('')}</div>`);
+
+  const grid=[0,5,10].map(v=>{const y=52-4-(v/10)*44;return `<line x1="0" y1="${y}" x2="280" y2="${y}" stroke="${T.border}" stroke-width="1"/>`;}).join('');
+  const sparkline=card(`${clab('Pain &amp; urgency — 14 days')}
+    <div style="display:flex;gap:14px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:6px"><svg width="20" height="4"><line x1="0" y1="2" x2="20" y2="2" stroke="${T.danger}" stroke-width="2"/></svg><span style="font-size:10px;color:${T.fgMid};font-family:'Space Grotesk'">Pain</span></div>
+      <div style="display:flex;align-items:center;gap:6px"><svg width="20" height="4"><line x1="0" y1="2" x2="20" y2="2" stroke="${T.accent}" stroke-width="2" stroke-dasharray="5,3"/></svg><span style="font-size:10px;color:${T.fgMid};font-family:'Space Grotesk'">Urgency</span></div>
+    </div>
+    <svg viewBox="0 0 280 52" width="100%" height="52" preserveAspectRatio="none" style="overflow:visible">
+      ${grid}
+      ${urgency14.d?`<path d="${urgency14.d}" stroke="${T.accent}" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="5,3" opacity="0.8"/>`:''}
+      ${pain14.d?`<path d="${pain14.d}" stroke="${T.danger}" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`:''}
+      ${pain14.dots.map(p=>p?`<circle cx="${p.x}" cy="${p.y}" r="2.5" fill="${T.danger}"/>`:'').join('')}
+      ${urgency14.dots.map(p=>p?`<circle cx="${p.x}" cy="${p.y}" r="2.5" fill="${T.accent}" opacity="0.8"/>`:'').join('')}
+    </svg>
+    <div style="display:flex;justify-content:space-between;margin-top:5px"><span style="font-size:9px;color:${T.fgLight};font-family:'Space Grotesk'">${days14[0].label}</span><span style="font-size:9px;color:${T.fgLight};font-family:'Space Grotesk'">${days14[13].label}</span></div>`);
+
+  const todBar=card(`${clab('Time of day')}
+    <div style="display:flex;height:7px;border-radius:4px;overflow:hidden;margin-bottom:14px">${entries.length===0?`<div style="flex:1;background:${T.border}"></div>`:`<div style="flex:${tod.morning};background:${T.accent};min-width:${tod.morning?2:0}px"></div><div style="flex:${tod.afternoon};background:${T.accent}99;min-width:${tod.afternoon?2:0}px"></div><div style="flex:${tod.evening};background:${T.accent}44;min-width:${tod.evening?2:0}px"></div>`}</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">${[{l:'Morning',s:'5am–12pm',c:tod.morning,op:1},{l:'Afternoon',s:'12–6pm',c:tod.afternoon,op:0.7},{l:'Evening',s:'6pm–5am',c:tod.evening,op:0.45}].map(({l,s,c,op})=>`<div style="text-align:center"><div style="font-family:'Space Grotesk';font-weight:700;font-size:22px;color:${T.accent};opacity:${op};line-height:1">${c}</div><div style="font-family:'Space Grotesk';font-size:11px;color:${T.fg};margin-top:3px;font-weight:600">${l}</div><div style="font-size:10px;color:${T.fgMid};margin-top:2px">${Math.round(c/todTotal*100)}%</div><div style="font-size:9px;color:${T.fgLight};margin-top:1px">${s}</div></div>`).join('')}</div>`);
+
+  const symCard=topSym.length>0?card(`${clab('Symptom frequency')}${topSym.map(([sym,count])=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:9px"><div style="font-family:'Space Grotesk';font-size:12px;color:${T.fg};width:82px;flex-shrink:0">${sym}</div><div style="flex:1;height:6px;border-radius:3px;background:${T.border};overflow:hidden"><div style="height:100%;border-radius:3px;background:${T.accent};width:${(count/maxSym)*100}%"></div></div><div style="font-family:'Space Grotesk';font-weight:600;font-size:12px;color:${T.fgMid};width:18px;text-align:right;flex-shrink:0">${count}</div></div>`).join('')}`):'';
+
+  const distCard=card(`${clab('Bristol type distribution')}<div style="display:flex;gap:6px;align-items:flex-end;height:68px">${tc.map((c,i)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="font-size:10px;color:${BRISTOL[i].color};font-family:'Space Grotesk';font-weight:700;min-height:13px">${c||''}</div><div style="width:100%;border-radius:4px;background:${BRISTOL[i].color};min-height:4px;height:${c?`${(c/maxTc)*46}px`:'4px'};opacity:${c?1:0.18}"></div><div style="font-size:9px;color:${T.fgMid};font-family:'Space Grotesk'">${i+1}</div></div>`).join('')}</div>`);
+
+  // Order: summary tiles → Bristol distribution → daily movements → pain & urgency → time of day → symptom frequency
+  return `<div style="overflow-y:auto;height:100%;padding:20px 20px 28px">${summaryTiles}${distCard}${barChart}${sparkline}${todBar}${symCard}</div>`;
+}
+
+/* ───────────────────────── SETTINGS ───────────────────────── */
+function renderSettings(){
+  const themeCards=Object.entries(THEMES).map(([key,t])=>{
+    const active=prefs.theme===key;
+    return `<button data-action="theme:${key}" style="flex:1;border-radius:14px;overflow:hidden;border:2px solid ${active?t.accent:T.border};background:${t.bg};padding:0">
+      <div style="height:5px;background:${t.accent};width:100%"></div>
+      <div style="padding:10px 6px 12px;display:flex;flex-direction:column;align-items:center;gap:6px">
+        <div style="width:22px;height:22px;border-radius:50%;background:${t.accent};box-shadow:${active?`0 2px 10px ${t.accent}66`:'none'}"></div>
+        <span style="font-family:'Space Grotesk';font-weight:600;font-size:11px;color:${t.fgMid}">${THEME_NAMES[key]}</span>
+        ${active?`<div style="width:6px;height:6px;border-radius:50%;background:${t.accent}"></div>`:''}
+      </div></button>`;
+  }).join('');
+
+  const rows=[
+    {ico:'↑',label:'Export as CSV',sub:'For your doctor or dietitian',action:'export-csv',danger:false},
+    {ico:'⬇',label:'Backup to JSON',sub:'Save a full data backup',action:'export-json',danger:false},
+    {ico:'↺',label:'Restore backup',sub:'Import a JSON backup',action:'restore',danger:false},
+    {ico:'✕',label:'Clear all data',sub:'Permanently delete all entries',action:'clear',danger:true},
+  ];
+  const rowsHtml=rows.map((r,i)=>`<button data-action="${r.action}" style="display:flex;align-items:center;gap:14px;width:100%;padding:15px 16px;background:transparent;border:none;border-bottom:${i<rows.length-1?`1px solid ${T.borderLight}`:'none'};text-align:left">
+    <div style="width:38px;height:38px;border-radius:10px;flex-shrink:0;background:${r.danger?T.dangerBg:T.accentBg};display:flex;align-items:center;justify-content:center;font-size:15px;color:${r.danger?T.danger:T.accent};font-family:'Space Grotesk';font-weight:700">${r.ico}</div>
+    <div><div style="font-family:'Space Grotesk';font-weight:600;font-size:14px;color:${r.danger?T.danger:T.fg}">${r.label}</div><div style="font-size:12px;color:${T.fgMid};margin-top:2px">${r.sub}</div></div>
+    <span style="margin-left:auto;color:${T.fgLight};font-size:20px;line-height:1">›</span>
+  </button>`).join('');
+
+  return `<div style="overflow-y:auto;height:100%;padding:20px 20px 28px">
+    <div style="font-family:'Space Grotesk';font-weight:700;font-size:15px;color:${T.fg};margin-bottom:12px">Appearance</div>
+    <div style="display:flex;gap:8px;margin-bottom:24px">${themeCards}</div>
+
+    <div style="font-family:'Space Grotesk';font-weight:700;font-size:15px;color:${T.fg};margin-bottom:12px">Export &amp; Data</div>
+    <div style="background:${T.surface};border:1px solid ${T.border};border-radius:14px;overflow:hidden">${rowsHtml}</div>
+
+    <div style="font-family:'Space Grotesk';font-weight:700;font-size:15px;color:${T.fg};margin:24px 0 12px">Help &amp; Support</div>
+    <div style="background:${T.surface};border:1px solid ${T.border};border-radius:14px;overflow:hidden">
+      <button data-action="nav:help" style="display:flex;align-items:center;gap:14px;width:100%;padding:15px 16px;background:transparent;border:none;border-bottom:1px solid ${T.borderLight};text-align:left">
+        <div style="width:38px;height:38px;border-radius:10px;flex-shrink:0;background:${T.accentBg};display:flex;align-items:center;justify-content:center;font-size:16px;color:${T.accent};font-family:'Space Grotesk';font-weight:700">?</div>
+        <div><div style="font-family:'Space Grotesk';font-weight:600;font-size:14px;color:${T.fg}">How Passage works</div><div style="font-size:12px;color:${T.fgMid};margin-top:2px">A full guide to every feature</div></div>
+        <span style="margin-left:auto;color:${T.fgLight};font-size:20px;line-height:1">›</span>
+      </button>
+      <a href="mailto:dev@walker-jones.eu?subject=Passage%20app%20%E2%80%94%20support%20%2F%20feedback" style="display:flex;align-items:center;gap:14px;width:100%;padding:15px 16px;background:transparent;border:none;text-align:left;text-decoration:none">
+        <div style="width:38px;height:38px;border-radius:10px;flex-shrink:0;background:${T.accentBg};display:flex;align-items:center;justify-content:center;font-size:16px;color:${T.accent}">${icoMail(T.accent,18)}</div>
+        <div><div style="font-family:'Space Grotesk';font-weight:600;font-size:14px;color:${T.fg}">Contact &amp; feedback</div><div style="font-size:12px;color:${T.fgMid};margin-top:2px">dev@walker-jones.eu — support, feature requests</div></div>
+        <span style="margin-left:auto;color:${T.fgLight};font-size:20px;line-height:1">›</span>
+      </a>
+    </div>
+
+    <div style="margin-top:20px;padding:18px;background:${T.surface};border:1px solid ${T.border};border-radius:14px">
+      <div style="font-family:'Space Grotesk';font-weight:700;font-size:13px;color:${T.fg};margin-bottom:7px">About Passage</div>
+      <p style="font-size:12px;color:${T.fgMid};line-height:1.7;margin-bottom:8px">Uses the clinically validated Bristol Stool Form Scale. All data is stored locally — nothing is transmitted externally.</p>
+      <p style="font-size:11px;color:${T.fgLight};line-height:1.6">This app is a tracking tool only. Always consult your healthcare provider about symptoms.</p>
+    </div>
+  </div>`;
+}
+
+/* ───────────────────────── HELP SCREEN ───────────────────────── */
+function renderHelp(){
+  const sec=(title,body)=>`<div style="background:${T.surface};border:1px solid ${T.border};border-radius:14px;padding:16px 16px 14px;margin-bottom:12px">
+    <div style="font-family:'Space Grotesk';font-weight:700;font-size:14px;color:${T.accent};margin-bottom:8px">${title}</div>
+    <div style="font-size:13px;color:${T.fgMid};line-height:1.65">${body}</div></div>`;
+  const li=items=>`<ul style="margin:6px 0 0;padding-left:18px">${items.map(i=>`<li style="margin-bottom:5px">${i}</li>`).join('')}</ul>`;
+  const b=s=>`<strong style="color:${T.fg};font-weight:600">${s}</strong>`;
+
+  const bristolList=`<div style="display:flex;flex-direction:column;gap:7px;margin-top:8px">${BRISTOL.map(x=>`
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:24px;height:24px;border-radius:6px;background:${x.color};color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;font-size:13px;flex-shrink:0">${x.n}</div>
+      <div style="min-width:0"><span style="font-family:'Space Grotesk';font-weight:600;font-size:13px;color:${T.fg}">${x.name}</span> <span style="color:${x.color};font-size:11px;font-weight:600">· ${x.tag}</span><div style="font-size:11px;color:${T.fgMid};line-height:1.4">${x.desc}</div></div>
+    </div>`).join('')}</div>`;
+
+  return `<div style="overflow-y:auto;height:100%;padding:18px 16px 32px">
+    <div style="font-family:'Space Grotesk';font-weight:700;font-size:22px;color:${T.fg};letter-spacing:-0.4px;margin:2px 4px 4px">How Passage works</div>
+    <p style="font-size:13px;color:${T.fgMid};line-height:1.65;margin:0 4px 18px">Passage is a private diary for tracking your bowel health — built for people managing IBD, Crohn's, IBS, or anyone who wants to understand their gut better. Everything below explains how each part works.</p>
+
+    ${sec('Logging an entry', `Tap the round ${b('+')} button in the centre of the bottom bar to start a new entry. You'll be guided through three quick steps:
+      ${li([
+        `${b('Step 1 — Stool type:')} pick the Bristol type (1–7) using the card picker — swipe the arrows or tap the dots. This is the ${b('only required field')}. You can also set the date &amp; time here (it defaults to now, but you can back-date an entry).`,
+        `${b('Step 2 — Colour &amp; pain:')} optionally record the stool colour, plus ${b('urgency')} and ${b('pain')} on a 0–10 scale.`,
+        `${b('Step 3 — Symptoms &amp; photos:')} tag any symptoms (blood, mucus, bloating, cramping…), add free-text notes, and attach optional photos.`,
+      ])}
+      Tap ${b('Save Entry')} on the last step, or the ${b('✓')} button in the bottom bar at any time.`)}
+
+    ${sec('The Bristol Stool Scale', `A clinically recognised way to classify stool form. Lower numbers are harder (constipation), higher numbers are looser (diarrhoea), and 3–4 are considered ideal.${bristolList}`)}
+
+    ${sec('Home', `Your at-a-glance summary: how many movements you've logged ${b('today')}, your count for the ${b('week')}, your ${b('average Bristol type')}, and your most recent entry. A rotating daily thought sits at the bottom.`)}
+
+    ${sec('History — Calendar &amp; List', `Switch between two views with the toggle at the top:
+      ${li([
+        `${b('Calendar:')} each day shows a ring. The ring's ${b('colour')} is that day's average Bristol type, and it ${b('fills up')} as you log more (a full ring = 4+ movements). Use the arrows to change month.`,
+        `${b('List:')} every entry grouped by day. ${b('Filter')} by Bristol type (the number circles), or by ${b('colour')}, ${b('symptom')} and ${b('pain')} level using the dropdowns. Tap ${b('Clear filters')} to reset.`,
+      ])}`)}
+
+    ${sec('Editing &amp; deleting entries', `In the ${b('List')} view, ${b('tap any entry')} to open it. From there you can change any field, ${b('remove a photo')} (tap the ✕ on its thumbnail), then tap ${b('Save changes')}. To remove an entry entirely, tap ${b('Delete entry')}. Both actions ask for confirmation.`)}
+
+    ${sec('Stats', `Trends from your data:
+      ${li([
+        `${b('Summary tiles')} — this week vs last week for movements, average type and average pain.`,
+        `${b('Bristol type distribution')} — how often each type 1–7 occurs.`,
+        `${b('Daily movements')} — a 7-day bar chart.`,
+        `${b('Pain &amp; urgency')} — a 14-day trend line.`,
+        `${b('Time of day')} — when movements tend to happen.`,
+        `${b('Symptom frequency')} — your most common symptoms.`,
+      ])}`)}
+
+    ${sec('Appearance', `Choose between three themes in ${b('Settings → Appearance')}: ${b('Terracotta')} (warm), ${b('Slate')} (clinical blue) and ${b('Obsidian')} (dark). Your choice is remembered.`)}
+
+    ${sec('Export, backup &amp; restore', `From ${b('Settings → Export &amp; Data')}:
+      ${li([
+        `${b('Export as CSV')} — a spreadsheet your GP, gastroenterologist or dietitian can open. Great to bring to an appointment.`,
+        `${b('Backup to JSON')} — a complete copy of all your entries (including photos).`,
+        `${b('Restore backup')} — import a JSON backup; it merges with what you already have.`,
+        `${b('Clear all data')} — permanently deletes everything (asks twice).`,
+      ])}`)}
+
+    ${sec('Your privacy', `All your data stays ${b('on your device')}. Nothing is uploaded, there are no accounts, no ads and no tracking. The only time data leaves your phone is when ${b('you')} choose to export or share a file.`)}
+
+    ${sec('Support &amp; feedback', `Questions, bugs or ideas for new features? I'd love to hear from you.<br><br>
+      <a href="mailto:dev@walker-jones.eu?subject=Passage%20app%20%E2%80%94%20support%20%2F%20feedback" style="display:inline-flex;align-items:center;gap:8px;background:${T.accent};color:#fff;text-decoration:none;font-family:'Space Grotesk';font-weight:700;font-size:13px;padding:10px 16px;border-radius:10px">${icoMail('#fff',16)} dev@walker-jones.eu</a>`)}
+
+    <div style="padding:4px 6px 0;font-size:11px;color:${T.fgLight};line-height:1.6">Passage is a personal tracking tool and does not provide medical advice or diagnosis. Always consult a qualified healthcare professional about your symptoms.</div>
+  </div>`;
+}
+
+/* ───────────────────────── ACTIONS ───────────────────────── */
+function setScreen(name){
+  S.screen=name;
+  S.editId=null;                 // leaving via nav always exits edit mode
+  if(name==='log'){ S.form=freshForm(); S.wizardStep=0; }
+  render();
+}
+
+function startEdit(id){
+  const e=loadEntries().find(x=>String(x.id)===String(id));
+  if(!e){ showToast('Entry not found'); return; }
+  S.editId=e.id;
+  S.form={
+    bristol:e.bristolType, colour:e.colour||null,
+    urgency:+e.urgency||0, pain:+e.pain||0,
+    symptoms:[...(e.symptoms||[])], notes:e.notes||'',
+    photos:[...(e.photos||[])], datetime:toLocalInput(e.datetime),
+  };
+  S.cardIdx=Math.max(0,Math.min(6,(e.bristolType||4)-1));
+  S.screen='log';
+  render();
+}
+
+function deleteEntry(){
+  if(S.editId==null) return;
+  if(!confirm('Delete this entry permanently? This cannot be undone.')) return;
+  const entries=loadEntries().filter(x=>String(x.id)!==String(S.editId));
+  saveEntries(entries);
+  S.editId=null;
+  showToast('🗑️ Entry deleted');
+  setScreen('history');
+}
+
+function triggerShake(){
+  const wrap=$('bristolWrap'); if(wrap){ wrap.style.animation='shake 0.35s'; setTimeout(()=>{const w=$('bristolWrap');if(w)w.style.animation='';},450); }
+  const err=$('bristolError'); if(err) err.style.display='block';
+}
+
+function handleSave(){
+  if(!S.form.bristol){ triggerShake(); return; }
+  const f=S.form;
+  const fields={
+    datetime:f.datetime||nowDT(),
+    bristolType:f.bristol,
+    colour:f.colour,
+    urgency:f.urgency,
+    pain:f.pain,
+    symptoms:[...f.symptoms],
+    notes:(f.notes||'').trim(),
+    photos:[...f.photos],
+  };
+  let entries=loadEntries();
+  if(S.editId!=null){
+    // update the existing entry in place (preserve its id)
+    entries=entries.map(e=>String(e.id)===String(S.editId)?{...e,...fields}:e);
+    entries.sort((a,b)=>entryTs(b)-entryTs(a));
+    saveEntries(entries);
+    S.editId=null;
+    showToast('✅ Changes saved');
+    setScreen('history');
+  } else {
+    entries.unshift({id:Date.now(),...fields});
+    entries.sort((a,b)=>entryTs(b)-entryTs(a));
+    saveEntries(entries);
+    showToast('✅ Entry saved');
+    setScreen('home');
+  }
+}
+
+function addPhotos(files){
+  Array.from(files).forEach(file=>{
+    const r=new FileReader();
+    r.onload=ev=>{ S.form.photos.push(ev.target.result); const ps=$('photoSection'); if(ps) ps.outerHTML=renderPhotos(); };
+    r.readAsDataURL(file);
+  });
+}
+
+function applyTheme(key){
+  prefs.theme=key; T=THEMES[key];
+  try{ localStorage.setItem(PREF_THEME,key); }catch{}
+  render();
+}
+
+/* delegated click handler */
+document.addEventListener('click',ev=>{
+  const btn=ev.target.closest('[data-action]'); if(!btn) return;
+  const a=btn.getAttribute('data-action');
+  const [cmd,arg]=a.split(':');
+
+  switch(cmd){
+    case 'nav': setScreen(arg); break;
+    case 'cta': if(S.screen==='log') handleSave(); else setScreen('log'); break;
+
+    case 'wizard-next':
+      if(S.wizardStep===0 && !S.form.bristol){ triggerShake(); break; }
+      S.wizardStep++; render(); break;
+    case 'wizard-back': S.wizardStep--; render(); break;
+    case 'save': handleSave(); break;
+
+    case 'bristol': S.form.bristol=+arg; { const p=$('bristolPicker'); if(p) p.outerHTML=renderBristolTiles(); } break;
+    case 'card-prev': if(S.cardIdx>0){ S.cardIdx--; S.form.bristol=S.cardIdx+1; const p=$('bristolPicker'); if(p) p.outerHTML=renderBristolCards(); } break;
+    case 'card-next': if(S.cardIdx<6){ S.cardIdx++; S.form.bristol=S.cardIdx+1; const p=$('bristolPicker'); if(p) p.outerHTML=renderBristolCards(); } break;
+    case 'card-dot': S.cardIdx=+arg; S.form.bristol=S.cardIdx+1; { const p=$('bristolPicker'); if(p) p.outerHTML=renderBristolCards(); } break;
+
+    case 'colour': S.form.colour=(S.form.colour===arg?null:arg); render(); break;
+    case 'symptom': {
+      const s=arg;
+      if(S.form.symptoms.includes(s)) S.form.symptoms=S.form.symptoms.filter(x=>x!==s);
+      else S.form.symptoms.push(s);
+      reRenderSymptoms(btn); break;
+    }
+    case 'photo-add': $('photoInput').click(); break;
+    case 'photo-remove': S.form.photos.splice(+arg,1); { const ps=$('photoSection'); if(ps) ps.outerHTML=renderPhotos(); } break;
+
+    case 'hist-view': S.histView=arg; render(); break;
+    case 'hist-filter': S.histFilter.bristol=(arg==='all'?null:(S.histFilter.bristol===+arg?null:+arg)); render(); break;
+    case 'hist-clear': S.histFilter={bristol:null,colour:null,symptom:null,pain:null}; render(); break;
+    case 'edit': startEdit(arg); break;
+    case 'delete-entry': deleteEntry(); break;
+    case 'cal-prev': S.calDate=new Date(S.calDate.getFullYear(),S.calDate.getMonth()-1,1); render(); break;
+    case 'cal-next': S.calDate=new Date(S.calDate.getFullYear(),S.calDate.getMonth()+1,1); render(); break;
+
+    case 'theme': applyTheme(arg); break;
+
+    case 'export-csv': exportCSV(); break;
+    case 'export-json': exportJSON(); break;
+    case 'restore': $('importFile').click(); break;
+    case 'clear': clearAllData(); break;
+  }
 });
 
-// ── FILTER TOOLTIP ────────────────────────────────────────────────────
-(function() {
-  const tip = document.getElementById('filterTooltip');
-  let hideTimer = null;
-
-  function showTip(chip) {
-    const text = chip.dataset.tip;
-    if (!text) return;
-    clearTimeout(hideTimer);
-    tip.innerHTML = text.replace(/&#10;/g,'<br>').replace(/\n/g,'<br>');
-    tip.classList.add('visible');
-    positionTip(chip);
-  }
-
-  function hideTip() {
-    hideTimer = setTimeout(() => tip.classList.remove('visible'), 120);
-  }
-
-  function positionTip(chip) {
-    const r = chip.getBoundingClientRect();
-    const tw = 200;
-    let left = r.left + r.width / 2 - tw / 2;
-    // clamp within viewport
-    left = Math.max(8, Math.min(left, window.innerWidth - tw - 8));
-    tip.style.width = tw + 'px';
-    tip.style.left = left + 'px';
-    tip.style.top = (r.top - 8) + 'px'; // will be adjusted after render
-    // nudge up by tooltip height after paint
-    requestAnimationFrame(() => {
-      tip.style.top = (r.top - tip.offsetHeight - 10) + 'px';
-    });
-  }
-
-  // Desktop: hover
-  document.querySelectorAll('.filter-chip[data-tip]').forEach(chip => {
-    chip.addEventListener('mouseenter', () => showTip(chip));
-    chip.addEventListener('mouseleave', hideTip);
-    chip.addEventListener('focus', () => showTip(chip));
-    chip.addEventListener('blur', hideTip);
-  });
-
-  // Mobile: long-press (300ms hold)
-  let pressTimer = null;
-  document.querySelectorAll('.filter-chip[data-tip]').forEach(chip => {
-    chip.addEventListener('touchstart', (e) => {
-      pressTimer = setTimeout(() => {
-        showTip(chip);
-        setTimeout(hideTip, 2200);
-      }, 300);
-    }, { passive: true });
-    chip.addEventListener('touchend', () => clearTimeout(pressTimer));
-    chip.addEventListener('touchmove', () => clearTimeout(pressTimer));
-  });
-})();
-
-function renderHistory() {
-  let entries = loadEntries();
-  if (historyFilter !== 'all') entries = entries.filter(e=>e.bristolType==historyFilter);
-  const list = document.getElementById('historyList');
-  const empty = document.getElementById('emptyHistory');
-  if (!entries.length) { list.innerHTML=''; empty.style.display='block'; return; }
-  empty.style.display = 'none';
-
-  // Group by date
-  const groups = {};
-  entries.forEach(e => {
-    const d = new Date(e.datetime).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-    if (!groups[d]) groups[d] = [];
-    groups[d].push(e);
-  });
-
-  list.innerHTML = Object.entries(groups).map(([date, es]) => `
-    <p style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;padding:10px 4px 6px;">${date}</p>
-    ${es.map(e => `<div class="entry-chip type-${e.bristolType}" onclick="showDetail(${e.id})" style="position:relative;">
-      <div class="entry-type-badge">${e.bristolType}</div>
-      <div class="entry-info">
-        <div class="title">Type ${e.bristolType} — ${BRISTOL_LABELS[e.bristolType]}</div>
-        <div class="sub">${e.colour||''}${e.symptoms.length?' · '+e.symptoms.slice(0,2).join(', '):''}${e.ease?' · '+e.ease:''}</div>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-        <div class="entry-time">${new Date(e.datetime).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div>
-        <button class="del-btn" onclick="event.stopPropagation();deleteEntry(${e.id})">🗑</button>
-      </div>
-    </div>`).join('')}
-  `).join('');
+function reRenderSymptoms(btn){
+  const container=btn.parentNode; // the flex-wrap container
+  container.outerHTML=renderSymptoms();
 }
 
-function deleteEntry(id) {
-  if (!confirm('Delete this entry?')) return;
-  const entries = loadEntries().filter(e=>e.id!==id);
-  saveEntries(entries);
-  renderHistory();
-  showToast('🗑️ Entry deleted');
-}
+/* delegated input handler (sliders, notes, datetime) */
+document.addEventListener('input',ev=>{
+  const el=ev.target.closest('[data-field]'); if(!el) return;
+  const field=el.getAttribute('data-field');
+  if(field==='urgency'||field==='pain'){
+    const v=+el.value; S.form[field]=v;
+    const lab=$('val-'+field); if(lab) lab.textContent=v;
+    const color=field==='pain'?T.danger:T.accent;
+    el.style.background=`linear-gradient(to right,${color} ${(v/10)*100}%,${T.border} ${(v/10)*100}%)`;
+  } else if(field==='notes'){ S.form.notes=el.value; }
+  else if(field==='datetime'){ S.form.datetime=el.value; }
+});
 
-// ── DETAIL MODAL ──────────────────────────────────────────────────────
-function showDetail(id) {
-  const e = loadEntries().find(x=>x.id===id);
-  if (!e) return;
-  const dt = new Date(e.datetime);
-  document.getElementById('modalTitle').textContent =
-    `Type ${e.bristolType} — ${dt.toLocaleDateString('en-GB',{day:'numeric',month:'short'})} at ${dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}`;
+/* delegated change handler (history filter dropdowns) */
+document.addEventListener('change',ev=>{
+  const el=ev.target.closest('[data-filter]'); if(!el) return;
+  const f=el.getAttribute('data-filter');
+  S.histFilter[f]=el.value||null;
+  render();
+});
 
-  document.getElementById('modalBody').innerHTML = `
-    <div class="detail-row"><span class="lbl">Bristol Type</span><span class="val">Type ${e.bristolType} — ${BRISTOL_LABELS[e.bristolType]}</span></div>
-    <div class="detail-row"><span class="lbl">Colour</span><span class="val">${e.colour||'Not recorded'}</span></div>
-    <div class="detail-row"><span class="lbl">Urgency</span><span class="val">${e.urgency}/10 — ${urgencyDescs[e.urgency]||e.urgency}</span></div>
-    <div class="detail-row"><span class="lbl">Pain</span><span class="val">${e.pain}/10 — ${painDescs[e.pain]||e.pain}</span></div>
-    <div class="detail-row"><span class="lbl">Ease</span><span class="val">${e.ease||'Not recorded'}</span></div>
-    <div class="detail-row"><span class="lbl">Symptoms</span><span class="val">${e.symptoms.join(', ')||'None'}</span></div>
-    ${e.notes ? `<div class="detail-row"><span class="lbl">Notes</span><span class="val">${e.notes}</span></div>` : ''}
-    ${e.photos.length ? `<div style="margin-top:12px;font-weight:700;font-size:13px;color:var(--muted);">Photos</div><div class="detail-photos">${e.photos.map(p=>`<img src="${p}">`).join('')}</div>` : ''}
-  `;
+/* hidden file inputs */
+$('photoInput').addEventListener('change',e=>{ addPhotos(e.target.files); e.target.value=''; });
+$('importFile').addEventListener('change',e=>{ importJSON(e); });
 
-  document.getElementById('detailModal').classList.add('open');
-}
-function closeModal(ev) { if (ev.target === document.getElementById('detailModal')) closeModalDirect(); }
-function closeModalDirect() { document.getElementById('detailModal').classList.remove('open'); }
-
-// ── CHARTS ────────────────────────────────────────────────────────────
-function renderCharts() {
-  const entries = loadEntries();
-  const mintColor = '#1D9E75';
-
-  // Daily counts (14 days)
-  const days = Array.from({length:14},(_,i)=>{ const d=new Date(); d.setDate(d.getDate()-13+i); return d; });
-  const dayCounts = days.map(d => {
-    const s = new Date(d); s.setHours(0,0,0,0);
-    const e2 = new Date(d); e2.setHours(23,59,59,999);
-    return entries.filter(e=>{ const t=new Date(e.datetime); return t>=s&&t<=e2; }).length;
-  });
-  const dayLabels = days.map(d=>d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}));
-
-  destroyChart('chartDaily');
-  charts.daily = new Chart(document.getElementById('chartDaily'), {
-    type:'bar',
-    data:{ labels:dayLabels, datasets:[{ data:dayCounts, backgroundColor:mintColor+'aa', borderColor:mintColor, borderWidth:2, borderRadius:6 }]},
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true,ticks:{stepSize:1,color:'#8ca898'},grid:{color:'#e8f0ec'}}, x:{ticks:{maxRotation:45,color:'#8ca898',font:{size:9}},grid:{display:false}} }}
-  });
-
-  // Type distribution
-  const typeCounts = [1,2,3,4,5,6,7].map(t=>entries.filter(e=>e.bristolType===t).length);
-  destroyChart('chartType');
-  charts.type = new Chart(document.getElementById('chartType'), {
-    type:'bar',
-    data:{ labels:['T1','T2','T3','T4','T5','T6','T7'], datasets:[{ data:typeCounts, backgroundColor:['#e8706a','#e89070','#1D9E75','#0c6b54','#f5a623','#e8706a','#c0392b'], borderRadius:6 }]},
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true,ticks:{stepSize:1,color:'#8ca898'},grid:{color:'#e8f0ec'}}, x:{ticks:{color:'#8ca898'},grid:{display:false}} }}
-  });
-
-  // Pain & urgency over last 14 days
-  const painData = days.map(d => {
-    const s=new Date(d); s.setHours(0,0,0,0); const e2=new Date(d); e2.setHours(23,59,59,999);
-    const dayEs = entries.filter(e=>{const t=new Date(e.datetime);return t>=s&&t<=e2;});
-    return dayEs.length ? dayEs.reduce((a,x)=>a+x.pain,0)/dayEs.length : null;
-  });
-  const urgencyData = days.map(d => {
-    const s=new Date(d); s.setHours(0,0,0,0); const e2=new Date(d); e2.setHours(23,59,59,999);
-    const dayEs = entries.filter(e=>{const t=new Date(e.datetime);return t>=s&&t<=e2;});
-    return dayEs.length ? dayEs.reduce((a,x)=>a+x.urgency,0)/dayEs.length : null;
-  });
-  destroyChart('chartPain');
-  charts.pain = new Chart(document.getElementById('chartPain'), {
-    type:'line',
-    data:{ labels:dayLabels, datasets:[
-      { label:'Pain', data:painData, borderColor:'#e8706a', backgroundColor:'#e8706a22', fill:true, tension:0.4, pointRadius:3, spanGaps:true },
-      { label:'Urgency', data:urgencyData, borderColor:'#f5a623', backgroundColor:'#f5a62322', fill:true, tension:0.4, pointRadius:3, spanGaps:true }
-    ]},
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'top',labels:{font:{family:'Nunito',weight:'700'},color:'#4a6357'}}}, scales:{ y:{min:0,max:10,ticks:{color:'#8ca898'},grid:{color:'#e8f0ec'}}, x:{ticks:{maxRotation:45,color:'#8ca898',font:{size:9}},grid:{display:false}} }}
-  });
-
-  // Colour frequency
-  const colours = {};
-  entries.forEach(e=>{ if(e.colour){ colours[e.colour]=(colours[e.colour]||0)+1; }});
-  const colKeys = Object.keys(colours).sort((a,b)=>colours[b]-colours[a]);
-  const colMap = {'Brown':'#8B5E3C','Dark Brown':'#4a2e1a','Light Brown':'#c4915a','Yellow':'#e6c84a','Green':'#5a9e4a','Black':'#1a1a1a','Red/Blood':'#c0392b','Pale/Grey':'#c8c0b8'};
-  destroyChart('chartColour');
-  charts.colour = new Chart(document.getElementById('chartColour'), {
-    type:'doughnut',
-    data:{ labels:colKeys, datasets:[{ data:colKeys.map(k=>colours[k]), backgroundColor:colKeys.map(k=>colMap[k]||'#8ca898'), borderWidth:3, borderColor:'white' }]},
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'right',labels:{font:{family:'Nunito',weight:'700',size:11},color:'#4a6357',boxWidth:14}}} }
-  });
-
-  // Insights
-  renderInsights(entries);
-}
-
-function destroyChart(id) {
-  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
-}
-
-function renderInsights(entries) {
-  const row = document.getElementById('insightRow');
-  if (!entries.length) { row.innerHTML='<span style="font-size:13px;color:var(--muted);">Log some entries to see insights here!</span>'; return; }
-
-  const chips = [];
-  const total = entries.length;
-  chips.push(`<div class="insight-chip">📋 ${total} total entries</div>`);
-
-  const avgType = (entries.reduce((s,e)=>s+e.bristolType,0)/total).toFixed(1);
-  chips.push(`<div class="insight-chip ${parseFloat(avgType)<3||parseFloat(avgType)>5?'rose':''}">🌊 Avg type: ${avgType}</div>`);
-
-  const bloodCount = entries.filter(e=>e.symptoms.includes('Blood')).length;
-  if (bloodCount) chips.push(`<div class="insight-chip rose">🩸 Blood noted ${bloodCount}×</div>`);
-
-  const avgPain = (entries.reduce((s,e)=>s+e.pain,0)/total).toFixed(1);
-  if (parseFloat(avgPain)>3) chips.push(`<div class="insight-chip amber">⚡ Avg pain: ${avgPain}/10</div>`);
-
-  const type7 = entries.filter(e=>e.bristolType===7).length;
-  if (type7>2) chips.push(`<div class="insight-chip rose">💧 Liquid stools ${type7}×</div>`);
-
-  row.innerHTML = chips.join('');
-}
-
-// ── EXPORT CSV ────────────────────────────────────────────────────────
-// Saves text to a file and opens the native share/save sheet on Android.
-// Falls back to a browser download when running outside the app (e.g. dev).
-async function saveAndShareFile(filename, data, mimeType, toastMsg) {
-  const cap = window.Capacitor;
-  if (cap && cap.isNativePlatform && cap.isNativePlatform()) {
-    try {
-      const { Filesystem, Share } = cap.Plugins;
-      await Filesystem.writeFile({ path: filename, data, directory: 'CACHE', encoding: 'utf8' });
-      const { uri } = await Filesystem.getUri({ path: filename, directory: 'CACHE' });
-      await Share.share({ title: filename, files: [uri], dialogTitle: 'Share or save your data' });
+/* ───────────────────────── EXPORT / DATA (preserved from v1) ───────────────────────── */
+async function saveAndShareFile(filename,data,mimeType,toastMsg){
+  const cap=window.Capacitor;
+  if(cap && cap.isNativePlatform && cap.isNativePlatform()){
+    try{
+      const {Filesystem,Share}=cap.Plugins;
+      await Filesystem.writeFile({path:filename,data,directory:'CACHE',encoding:'utf8'});
+      const {uri}=await Filesystem.getUri({path:filename,directory:'CACHE'});
+      await Share.share({title:filename,files:[uri],dialogTitle:'Share or save your data'});
       showToast(toastMsg);
-    } catch (err) {
-      // The share sheet rejects when the user dismisses it — not an error.
-      if (err && /cancel/i.test(err.message || '')) return;
-      showToast('⚠️ Could not export file');
-    }
+    }catch(err){ if(err && /cancel/i.test(err.message||'')) return; showToast('⚠️ Could not export file'); }
     return;
   }
-  // Browser fallback
-  const blob = new Blob([data], { type: mimeType });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename;
-  a.click(); URL.revokeObjectURL(url);
+  const blob=new Blob([data],{type:mimeType});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); URL.revokeObjectURL(url);
   showToast(toastMsg);
 }
 
-function exportCSV() {
-  const entries = loadEntries();
-  if (!entries.length) { showToast('No entries to export'); return; }
-  const headers = ['Date','Time','Bristol Type','Bristol Description','Colour','Urgency (1-10)','Pain (1-10)','Ease','Symptoms','Notes','Has Photos'];
-  const rows = entries.map(e => {
-    const dt = new Date(e.datetime);
+function exportCSV(){
+  const entries=loadEntries();
+  if(!entries.length){ showToast('No entries to export'); return; }
+  const headers=['Date','Time','Bristol Type','Bristol Description','Colour','Urgency (0-10)','Pain (0-10)','Symptoms','Notes','Has Photos'];
+  const rows=entries.slice().sort((a,b)=>entryTs(b)-entryTs(a)).map(e=>{
+    const dt=new Date(entryTs(e));
     return [
       dt.toLocaleDateString('en-GB'),
       dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}),
       e.bristolType,
-      BRISTOL_LABELS[e.bristolType],
+      (BRISTOL[e.bristolType-1]||{}).name||'',
       e.colour||'',
       e.urgency,
       e.pain,
-      e.ease||'',
-      e.symptoms.join('; '),
+      (e.symptoms||[]).join('; '),
       (e.notes||'').replace(/,/g,' '),
-      e.photos.length ? 'Yes ('+e.photos.length+')' : 'No'
+      (e.photos&&e.photos.length)?'Yes ('+e.photos.length+')':'No'
     ].map(v=>`"${v}"`).join(',');
   });
-  const csv = [headers.join(','), ...rows].join('\n');
-  saveAndShareFile('passage-export-'+new Date().toISOString().slice(0,10)+'.csv', csv, 'text/csv', '📊 CSV ready to share!');
+  const csv=[headers.join(','),...rows].join('\n');
+  saveAndShareFile('passage-export-'+new Date().toISOString().slice(0,10)+'.csv',csv,'text/csv','📊 CSV ready to share');
 }
 
-function exportJSON() {
-  const entries = loadEntries();
-  if (!entries.length) { showToast('No entries to export'); return; }
-  saveAndShareFile('passage-backup-'+new Date().toISOString().slice(0,10)+'.json', JSON.stringify(entries,null,2), 'application/json', '💾 Backup ready to share!');
+function exportJSON(){
+  const entries=loadEntries();
+  if(!entries.length){ showToast('No entries to export'); return; }
+  saveAndShareFile('passage-backup-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(entries,null,2),'application/json','💾 Backup ready to share');
 }
 
-function importJSON(e) {
-  const file = e.target.files[0]; if (!file) return;
-  const r = new FileReader();
-  r.onload = ev => {
-    try {
-      const data = JSON.parse(ev.target.result);
-      if (!Array.isArray(data)) throw new Error('Invalid');
-      if (!confirm(`Import ${data.length} entries? This will merge with existing data.`)) return;
-      const existing = loadEntries();
-      const existingIds = new Set(existing.map(x=>x.id));
-      const merged = [...existing, ...data.filter(x=>!existingIds.has(x.id))];
-      merged.sort((a,b)=>new Date(b.datetime)-new Date(a.datetime));
+function importJSON(e){
+  const file=e.target.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(!Array.isArray(data)) throw new Error('Invalid');
+      if(!confirm(`Import ${data.length} entries? This will merge with existing data.`)) return;
+      const existing=loadEntries();
+      const ids=new Set(existing.map(x=>x.id));
+      const merged=[...existing,...data.filter(x=>!ids.has(x.id))];
+      merged.sort((a,b)=>entryTs(b)-entryTs(a));
       saveEntries(merged);
-      showToast('📂 ' + data.length + ' entries imported!');
-    } catch { showToast('⚠️ Invalid backup file'); }
+      showToast('📂 '+data.length+' entries imported');
+      render();
+    }catch{ showToast('⚠️ Invalid backup file'); }
   };
   r.readAsText(file);
-  e.target.value = '';
+  e.target.value='';
 }
 
-function clearAllData() {
-  if (!confirm('Delete ALL data permanently? This cannot be undone.')) return;
-  if (!confirm('Are you sure? All entries and photos will be lost.')) return;
+function clearAllData(){
+  if(!confirm('Delete ALL data permanently? This cannot be undone.')) return;
+  if(!confirm('Are you sure? All entries and photos will be lost.')) return;
   saveEntries([]);
-  try { localStorage.removeItem(STORAGE_KEY); } catch {}
+  try{ localStorage.removeItem(STORAGE_KEY); }catch{}
   showToast('🗑️ All data cleared');
-  renderDashboard();
+  render();
 }
 
-// ── TOAST ─────────────────────────────────────────────────────────────
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 2500);
+/* ───────────────────────── TOAST ───────────────────────── */
+function showToast(msg){
+  const t=$('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(showToast._t); showToast._t=setTimeout(()=>t.classList.remove('show'),2500);
 }
 
-// ── HELP SCREEN TOGGLE (header ? button) ─────────────────────────────
-let previousScreen = 'home';
-function toggleHelpScreen() {
-  const helpActive = document.getElementById('screen-help').classList.contains('active');
-  if (helpActive) {
-    showScreen(previousScreen, document.querySelector(`.nav-btn[onclick*="'${previousScreen}'"]`));
-  } else {
-    const current = document.querySelector('.screen.active');
-    if (current && current.id !== 'screen-help') {
-      previousScreen = current.id.replace('screen-', '');
-    }
-    showScreen('help', null);
-  }
+/* ───────────────────────── PREFS + INIT ───────────────────────── */
+function loadPrefs(){
+  try{
+    const th=localStorage.getItem(PREF_THEME); if(th&&THEMES[th]) prefs.theme=th;
+    // log layout is fixed (Wizard) and the picker is fixed (Cards) — no longer user-configurable
+    prefs.logStyle='wizard'; prefs.bristolPicker='cards';
+    // migrate old dark-mode users to obsidian on first run
+    if(!th){ const dark=localStorage.getItem('gutdiary_dark'); if(dark==='1') prefs.theme='obsidian'; }
+  }catch{}
+  T=THEMES[prefs.theme];
 }
 
-// ── HELP ACCORDION ───────────────────────────────────────────────────
-function toggleHelp(header) {
-  const body = header.nextElementSibling;
-  const isOpen = header.classList.contains('open');
-  header.classList.toggle('open', !isOpen);
-  body.classList.toggle('open', !isOpen);
-}
-
-// ── DARK MODE ─────────────────────────────────────────────────────────
-function toggleDarkMode(on) {
-  document.documentElement.setAttribute('data-dark', on ? 'true' : 'false');
-  localStorage.setItem('gutdiary_dark', on ? '1' : '0');
-}
-function initDarkMode() {
-  const saved = localStorage.getItem('gutdiary_dark');
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const on = saved !== null ? saved === '1' : prefersDark;
-  document.documentElement.setAttribute('data-dark', on ? 'true' : 'false');
-  const tog = document.getElementById('darkModeToggle');
-  if (tog) tog.checked = on;
-}
-
-// ── INIT ──────────────────────────────────────────────────────────────
-(async function init() {
-  initDarkMode();          // apply theme immediately (no data dependency)
-  await initStorage();     // hydrate entries from IndexedDB before first render
-  renderDashboard();
-  setDefaultDatetime();
-  // Hold the native splash until the UI is painted, then hide it — closes the
-  // brief white flash on cold start. (No-op in a browser.)
-  const SplashScreen = window.Capacitor?.Plugins?.SplashScreen;
-  if (SplashScreen) {
-    requestAnimationFrame(() => requestAnimationFrame(() => SplashScreen.hide().catch(() => {})));
-  }
+(async function init(){
+  loadPrefs();
+  document.documentElement.style.background=T.bg;
+  document.body.style.background=T.bg;
+  render();                 // paint immediately so the UI never waits on storage
+  await initStorage();      // hydrate entries from IndexedDB…
+  render();                 // …then repaint with the real data
+  const SplashScreen=window.Capacitor?.Plugins?.SplashScreen;
+  if(SplashScreen) requestAnimationFrame(()=>requestAnimationFrame(()=>SplashScreen.hide().catch(()=>{})));
 })();
 </script>
 </body>
